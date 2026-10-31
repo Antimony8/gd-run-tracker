@@ -618,6 +618,29 @@ textarea {
 .section-title {
   font-size: 28px;
 }
+.section-toggle {
+  all: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.section-toggle:disabled {
+  cursor: default;
+}
+.section-toggle:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+.toggle-arrow {
+  display: inline-block;
+  font-size: 0.6em;
+  transition: transform 0.2s var(--bounce);
+}
+.toggle-arrow.open {
+  transform: rotate(90deg);
+}
 .count {
   display: inline-block;
   font-size: 0.6em;

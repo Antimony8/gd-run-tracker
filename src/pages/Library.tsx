@@ -7,6 +7,7 @@ import { countdown, daysUntil, formatDate, pct } from '../lib/format'
 import { listRank } from '../lib/levelInfo'
 import { moveInQueue, removeFromQueue } from '../lib/data'
 import { useShortcut } from '../lib/shortcuts'
+import { setSetting, useSetting } from '../lib/settings'
 import { useThumbBackground } from '../lib/levelThumbnail'
 import { BackupReminder } from '../components/BackupReminder'
 import { DifficultyBadge, DifficultyOrb } from '../components/DifficultyBadge'
@@ -116,9 +117,9 @@ export function Library() {
             </select>
           </div>
 
-          <QueueSection entries={nextUp} searching={!!q} />
           <Section title="In Progress" entries={inProgress} empty="Nothing in progress. Time to find a new level!" />
           <Section title="Completed" entries={completed} empty="No completions yet. You've got this." />
+          <QueueSection entries={nextUp} searching={!!q} />
         </>
       )}
 
@@ -167,13 +168,25 @@ function Section({ title, entries, empty }: { title: string; entries: Entry[]; e
 
 /** The "Next Up" queue: levels you plan to play next, in order. */
 function QueueSection({ entries, searching }: { entries: Entry[]; searching: boolean }) {
+  // Open unless you've closed it; searching always shows matches.
+  const open = useSetting('nextUpOpen') !== false || searching
   if (searching && entries.length === 0) return null
   return (
     <section className="section">
       <h2 className="section-title outlined">
-        Next Up <span className="count">{entries.length}</span>
+        <button
+          className="section-toggle"
+          aria-expanded={open}
+          onClick={() => setSetting('nextUpOpen', !open)}
+          disabled={searching}
+        >
+          <span className={`toggle-arrow ${open ? 'open' : ''}`} aria-hidden="true">
+            ▶
+          </span>
+          Next Up <span className="count">{entries.length}</span>
+        </button>
       </h2>
-      {entries.length === 0 ? (
+      {!open ? null : entries.length === 0 ? (
         <p className="muted section-empty">Queue up what you'll play next with the "+ Next Up" button on a level's page.</p>
       ) : (
         <ol className="queue">

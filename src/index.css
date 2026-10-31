@@ -1161,6 +1161,24 @@ textarea {
   display: block;
 }
 
+/* X posts embed as a tall card rather than a 16:9 video. */
+.tweet-embed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.tweet-embed .video-frame {
+  width: 100%;
+}
+.tweet-embed iframe {
+  width: min(100%, 550px);
+  height: min(72vh, 680px);
+  border: 0;
+  border-radius: 12px;
+  background: #000;
+}
+
 /* ---------- Settings ---------- */
 .page-title {
   font-size: 44px;

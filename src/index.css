@@ -427,6 +427,17 @@ textarea::placeholder {
 select option {
   background: var(--panel-solid);
 }
+
+/* The sync sign-in dialog (from dexie-cloud-addon) has light inputs but no text color of its own. */
+.dexie-dialog input {
+  color: #111;
+  caret-color: #111;
+  -webkit-text-fill-color: #111;
+}
+.dexie-dialog input::placeholder {
+  color: #888;
+  -webkit-text-fill-color: #888;
+}
 textarea {
   resize: vertical;
 }

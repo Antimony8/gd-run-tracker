@@ -12,7 +12,7 @@ Everything is stored in your browser. There are no accounts and no server.
 - **Add levels by ID**: details auto-fill from [GDBrowser](https://gdbrowser.com), falling back to GDBrowser search, [GDHistory](https://history.geometrydash.eu), and the demon lists if a service is down. You can always enter them by hand.
 - **Grandpa Demon tiers**: extreme demons in the AREDL top 500 get the tiers and demon faces from the [Grandpa Demon](https://github.com/ItzKiba/GrandpaDemon) mod (Supreme, Ultimate, Legendary, Mythical, Infinite, Grandpa).
 - **Demon list ranks** from [Pointercrate](https://pointercrate.com) and the [AREDL](https://aredl.net), refreshable per level or all at once in Settings.
-- **Card thumbnails**: a color or your own image on each level card.
+- **Card thumbnails**: levels with an in-game ID automatically use their community thumbnail from the [Level Thumbnails](https://geode-sdk.org/mods/cdc.level_thumbnails) mod. You can switch to a color, your own image, or none.
 - **Themes**: pick the app's background color, and give any level its own. Colors fade between pages like a GD color trigger.
 - **Run calculator**: finds the fewest runs that chain from 0 to 100, shows them on a GD-style bar with one lane per run, and highlights the missing gap if there is one.
 - **Runs from 0** show as just the percent you reached (`0–31` shows as `31%`), like a normal-mode attempt.
@@ -77,6 +77,7 @@ src/
     sheetReader.ts    Reads .xlsx and .csv files into rows
     spreadsheetImport.ts  Turns spreadsheet rows into levels and runs (+ tests)
     demonTier.ts      Grandpa Demon tiers from AREDL position (+ tests)
+    levelThumbnail.ts Community level thumbnails (levelthumbs.prevter.me)
     format.ts         Number/date formatting and validation (+ tests)
     settings.ts       App settings stored in IndexedDB
     theme.ts          Background color themes

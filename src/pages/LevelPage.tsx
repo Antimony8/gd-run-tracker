@@ -7,6 +7,7 @@ import { formatDate, parseQuickRun, pct, range, runLabel, todayISO, uid, validat
 import { addToQueue, deleteLevel, deleteRun, refreshListRanks, removeFromQueue, removeVideo, restoreRun } from '../lib/data'
 import { pointercrateSection } from '../lib/levelInfo'
 import { useShortcut } from '../lib/shortcuts'
+import { useThumbBackground } from '../lib/levelThumbnail'
 import { showToast } from '../lib/toast'
 import { countdown, daysUntil } from '../lib/format'
 import { href, navigate } from '../router'
@@ -17,6 +18,9 @@ import { RunFormModal } from '../components/RunFormModal'
 import { VideoButton } from '../components/VideoModal'
 import { BeatenModal, EditLevelModal } from '../components/LevelModals'
 
+// Stand-in while the level loads, so hooks run in the same order every render.
+const NO_LEVEL = { thumbnail: { kind: 'none' } } as Level
+
 type Dialog = { type: 'log' } | { type: 'edit-run'; run: Run } | { type: 'beaten' } | { type: 'edit-level' } | null
 
 export function LevelPage({ id }: { id: string }) {
@@ -26,6 +30,7 @@ export function LevelPage({ id }: { id: string }) {
   const [dialog, setDialog] = useState<Dialog>(null)
 
   const calc = useMemo(() => calculateRuns(runs ?? []), [runs])
+  const thumb = useThumbBackground(level ?? NO_LEVEL, 'medium')
   useShortcut('n', () => setDialog({ type: 'log' }), !!level)
 
   if (level === undefined || runs === undefined) return <div className="loading outlined">Loading…</div>
@@ -70,7 +75,7 @@ export function LevelPage({ id }: { id: string }) {
         ‹ Levels
       </a>
 
-      <header className="panel level-header">
+      <header className={`panel level-header ${thumb.className}`} style={thumb.style}>
         <DifficultyOrb difficulty={level.difficulty} tier={tier} size={84} />
         <div className="level-header-info">
           <h1 className="outlined">{level.name}</h1>

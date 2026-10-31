@@ -42,8 +42,11 @@ export interface Level {
   listRanks?: ListRanks
 }
 
-/** Card art: a solid color or a small image (stored as a downscaled data URL). */
-export type Thumbnail = { kind: 'color'; color: string } | { kind: 'image'; dataUrl: string }
+/**
+ * Card art: a solid color, a small image (stored as a downscaled data URL), or none.
+ * Unset means automatic: the level's community thumbnail when it has an in-game ID.
+ */
+export type Thumbnail = { kind: 'color'; color: string } | { kind: 'image'; dataUrl: string } | { kind: 'none' }
 
 /** Positions on community demon lists. null = checked and not on that list. */
 export interface ListRanks {

@@ -11,6 +11,7 @@ import { showToast } from '../lib/toast'
 import { countdown, daysUntil } from '../lib/format'
 import { href, navigate } from '../router'
 import { DifficultyBadge, DifficultyOrb } from '../components/DifficultyBadge'
+import { demonTier } from '../lib/demonTier'
 import { NormalBar, RunBar, RunLanes, runColor } from '../components/ProgressBar'
 import { RunFormModal } from '../components/RunFormModal'
 import { VideoButton } from '../components/VideoModal'
@@ -41,6 +42,7 @@ export function LevelPage({ id }: { id: string }) {
     )
   }
 
+  const tier = demonTier(level)
   const chainIndex = new Map(calc.chain.map((r, i) => [r.id, i]))
   const history = [...runs].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt)
   const close = () => setDialog(null)
@@ -69,7 +71,7 @@ export function LevelPage({ id }: { id: string }) {
       </a>
 
       <header className="panel level-header">
-        <DifficultyOrb difficulty={level.difficulty} size={84} />
+        <DifficultyOrb difficulty={level.difficulty} tier={tier} size={84} />
         <div className="level-header-info">
           <h1 className="outlined">{level.name}</h1>
           <p className="muted">
@@ -77,7 +79,7 @@ export function LevelPage({ id }: { id: string }) {
             {level.gdLevelId && <> · ID {level.gdLevelId}</>}
           </p>
           <div className="badge-row">
-            <DifficultyBadge difficulty={level.difficulty} />
+            <DifficultyBadge difficulty={level.difficulty} tier={tier} />
             <ListRankChips level={level} />
           </div>
         </div>

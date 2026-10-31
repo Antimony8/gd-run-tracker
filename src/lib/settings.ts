@@ -1,5 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../db'
+import type { CompletedSort } from './completedSort'
 
 export interface SettingValues {
   /** App background color (hex). */
@@ -10,6 +11,8 @@ export interface SettingValues {
   backupSnoozeUntil: number
   /** Whether the Next Up section on the levels page is expanded. */
   nextUpOpen: boolean
+  /** How the Completed section is ordered. */
+  completedSort: CompletedSort
 }
 
 export type SettingKey = keyof SettingValues

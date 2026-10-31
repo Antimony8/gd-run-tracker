@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../db'
 import type { Level, Run } from '../types'
@@ -8,6 +8,7 @@ import { listRank } from '../lib/levelInfo'
 import { moveInQueue, removeFromQueue } from '../lib/data'
 import { useShortcut } from '../lib/shortcuts'
 import { setSetting, useSetting } from '../lib/settings'
+import { COMPLETED_SORTS, compareCompleted, type CompletedSort } from '../lib/completedSort'
 import { useThumbBackground } from '../lib/levelThumbnail'
 import { BackupReminder } from '../components/BackupReminder'
 import { DifficultyBadge, DifficultyOrb } from '../components/DifficultyBadge'
@@ -35,6 +36,9 @@ export function Library() {
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<Sort>('recent')
   const searchRef = useRef<HTMLInputElement>(null)
+  const completedSort = useSetting('completedSort') ?? 'hardest'
+  // A new shuffle each visit; the 🔀 button reshuffles.
+  const [shuffleSeed, setShuffleSeed] = useState(() => Math.floor(Math.random() * 1e9))
   useShortcut('/', () => searchRef.current?.focus())
   useShortcut('a', () => setAdding(true))
 
@@ -68,7 +72,9 @@ export function Library() {
     .filter((e) => !e.level.beaten && e.level.queuePos !== undefined)
     .sort((a, b) => a.level.queuePos! - b.level.queuePos!)
   const inProgress = filtered.filter((e) => !e.level.beaten && e.level.queuePos === undefined)
-  const completed = filtered.filter((e) => e.level.beaten)
+  const completed = filtered
+    .filter((e) => e.level.beaten)
+    .sort((a, b) => compareCompleted(completedSort, shuffleSeed)(a.level, b.level))
 
   return (
     <div className="page">
@@ -119,7 +125,33 @@ export function Library() {
           </div>
 
           <Section title="In Progress" entries={inProgress} empty="Nothing in progress. Time to find a new level!" />
-          <Section title="Completed" entries={completed} empty="No completions yet. You've got this." />
+          <Section
+            title="Completed"
+            entries={completed}
+            empty="No completions yet. You've got this."
+            controls={
+              completed.length > 1 && (
+                <div className="section-controls">
+                  {completedSort === 'random' && (
+                    <button className="icon-btn" title="Shuffle again" onClick={() => setShuffleSeed((n) => n + 1)}>
+                      🔀
+                    </button>
+                  )}
+                  <select
+                    value={completedSort}
+                    onChange={(e) => setSetting('completedSort', e.target.value as CompletedSort)}
+                    aria-label="Sort completed levels"
+                  >
+                    {COMPLETED_SORTS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )
+            }
+          />
           <QueueSection entries={nextUp} searching={!!q} />
         </>
       )}
@@ -148,12 +180,23 @@ function sorter(sort: Sort) {
   }
 }
 
-function Section({ title, entries, empty }: { title: string; entries: Entry[]; empty: string }) {
+interface SectionProps {
+  title: string
+  entries: Entry[]
+  empty: string
+  /** Extra controls shown beside the heading, like a sort menu. */
+  controls?: ReactNode
+}
+
+function Section({ title, entries, empty, controls }: SectionProps) {
   return (
     <section className="section">
-      <h2 className="section-title outlined">
-        {title} <span className="count">{entries.length}</span>
-      </h2>
+      <div className="section-head">
+        <h2 className="section-title outlined">
+          {title} <span className="count">{entries.length}</span>
+        </h2>
+        {controls}
+      </div>
       {entries.length === 0 ? (
         <p className="muted section-empty">{empty}</p>
       ) : (

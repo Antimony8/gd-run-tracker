@@ -1,11 +1,13 @@
+import { useEffect } from 'react'
 import type { VideoRef } from '../types'
 import { formatBytes } from '../lib/format'
 import { LARGE_VIDEO_BYTES, isValidUrl } from '../lib/video'
+import { driveEnabled, preloadDrive } from '../lib/googleDrive'
 
 export type VideoChoice =
   | { mode: 'none' }
   | { mode: 'existing'; ref: VideoRef }
-  | { mode: 'upload'; file: File | null }
+  | { mode: 'upload'; file: File | null; compress: boolean; drive: boolean }
   | { mode: 'link'; url: string }
 
 export const initialChoice = (ref?: VideoRef): VideoChoice => (ref ? { mode: 'existing', ref } : { mode: 'none' })
@@ -34,7 +36,7 @@ export function VideoPicker({ value, onChange, existing }: Props) {
   const select = (mode: VideoChoice['mode']) => {
     if (mode === value.mode) return
     if (mode === 'existing' && existing) onChange({ mode, ref: existing })
-    else if (mode === 'upload') onChange({ mode, file: null })
+    else if (mode === 'upload') onChange({ mode, file: null, compress: true, drive: driveEnabled })
     else if (mode === 'link') onChange({ mode, url: '' })
     else onChange({ mode: 'none' })
   }
@@ -47,8 +49,14 @@ export function VideoPicker({ value, onChange, existing }: Props) {
     ) {
       return
     }
-    onChange({ mode: 'upload', file })
+    if (value.mode === 'upload') onChange({ ...value, file })
   }
+
+  // Load Google's sign-in script early, so tapping Save can open its popup straight away.
+  const wantsDrive = value.mode === 'upload' && value.drive
+  useEffect(() => {
+    if (wantsDrive) preloadDrive().catch(() => {})
+  }, [wantsDrive])
 
   return (
     <div className="field">
@@ -68,7 +76,11 @@ export function VideoPicker({ value, onChange, existing }: Props) {
 
       {value.mode === 'existing' && (
         <p className="hint">
-          {value.ref.kind === 'upload' ? `Uploaded file: ${value.ref.name}` : `Link: ${value.ref.url}`}
+          {value.ref.kind === 'upload'
+            ? `Uploaded file (this device): ${value.ref.name}`
+            : value.ref.kind === 'drive'
+              ? `Google Drive: ${value.ref.name}`
+              : `Link: ${value.ref.url}`}
         </p>
       )}
 
@@ -83,6 +95,23 @@ export function VideoPicker({ value, onChange, existing }: Props) {
             <span>Click to choose a video file</span>
           )}
         </label>
+      )}
+
+      {value.mode === 'upload' && (
+        <div className="upload-options">
+          <label className="check-row">
+            <input type="checkbox" checked={value.compress} onChange={(e) => onChange({ ...value, compress: e.target.checked })} />
+            <span>Compress to 720p (much smaller, faster to upload)</span>
+          </label>
+          {driveEnabled ? (
+            <label className="check-row">
+              <input type="checkbox" checked={value.drive} onChange={(e) => onChange({ ...value, drive: e.target.checked })} />
+              <span>Save to my Google Drive so it plays on all my devices</span>
+            </label>
+          ) : (
+            <p className="hint">Saved on this device only.</p>
+          )}
+        </div>
       )}
 
       {value.mode === 'link' && (

@@ -2,6 +2,8 @@ import { db } from '../db'
 import type { Level, Run, StoredVideo, VideoRef } from '../types'
 import { uid } from './format'
 import { fetchListRanks } from './levelInfo'
+import { compressVideo } from './compress'
+import { driveCacheId, driveEnabled, uploadToDrive } from './googleDrive'
 import type { VideoChoice } from '../components/VideoPicker'
 
 /** Saves an uploaded file to the videos table and returns a reference to it. */
@@ -11,19 +13,51 @@ export async function storeVideoFile(file: File): Promise<VideoRef> {
   return { kind: 'upload', videoId: id, name: file.name }
 }
 
-/** Removes the stored file behind a video reference (links have nothing to remove). */
+/**
+ * Removes the local file behind a video reference. Links have nothing to remove, and Drive videos
+ * only lose their local copy: the file stays in your Drive, so nothing is lost by accident.
+ */
 export async function removeVideo(ref?: VideoRef) {
   if (ref?.kind === 'upload') await db.videos.delete(ref.videoId)
+  if (ref?.kind === 'drive') await db.videos.delete(driveCacheId(ref.fileId))
 }
 
+/** A readable message for a failed save. */
+export function saveErrorMessage(err: unknown): string {
+  if (err instanceof Error && err.name === 'QuotaExceededError') return 'Browser storage is full.'
+  return err instanceof Error && err.message ? err.message : 'Saving failed.'
+}
+
+/** True when saving this choice uploads to Google Drive, so access must be requested from the tap first. */
+export const needsDrive = (choice: VideoChoice) => choice.mode === 'upload' && !!choice.file && choice.drive && driveEnabled
+
 /**
- * Turns the user's video choice into the reference to save, storing a new upload
- * and cleaning up the previous file if it was replaced or removed.
+ * Turns the user's video choice into the reference to save: compressing and storing (or uploading)
+ * a new file, and cleaning up the previous file if it was replaced or removed.
  */
-export async function applyVideoChoice(choice: VideoChoice, previous?: VideoRef): Promise<VideoRef | undefined> {
+export async function applyVideoChoice(
+  choice: VideoChoice,
+  previous?: VideoRef,
+  onStatus?: (text: string) => void,
+): Promise<VideoRef | undefined> {
   if (choice.mode === 'existing') return choice.ref
   let next: VideoRef | undefined
-  if (choice.mode === 'upload' && choice.file) next = await storeVideoFile(choice.file)
+  if (choice.mode === 'upload' && choice.file) {
+    let file = choice.file
+    if (choice.compress) {
+      onStatus?.('Compressing… 0%')
+      file = (await compressVideo(file, (p) => onStatus?.(`Compressing… ${Math.round(p * 100)}%`))).file
+    }
+    if (needsDrive(choice)) {
+      onStatus?.('Uploading to Google Drive… 0%')
+      const fileId = await uploadToDrive(file, (p) => onStatus?.(`Uploading to Google Drive… ${Math.round(p * 100)}%`))
+      // Keep a local copy so it plays here without downloading it again.
+      await db.videos.put({ id: driveCacheId(fileId), blob: file, name: file.name, type: file.type, size: file.size, createdAt: Date.now() })
+      next = { kind: 'drive', fileId, name: file.name }
+    } else {
+      next = await storeVideoFile(file)
+    }
+  }
   if (choice.mode === 'link') next = { kind: 'link', url: choice.url.trim() }
   await removeVideo(previous)
   return next

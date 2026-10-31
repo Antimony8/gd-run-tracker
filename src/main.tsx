@@ -7,9 +7,11 @@ import '@fontsource/nunito/800.css'
 import './index.css'
 import App from './App'
 import { requestPersistence } from './lib/storage'
+import { setupPwa } from './lib/pwa'
 
 // Ask the browser to keep our data (videos especially) from being cleared automatically.
 requestPersistence()
+setupPwa()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -4,7 +4,11 @@ import { db } from '../db'
 import type { Level, Run } from '../types'
 import { calculateRuns } from '../lib/runCalc'
 import { formatDate, parseQuickRun, pct, range, todayISO, uid, validateRun } from '../lib/format'
-import { deleteLevel, deleteRun, removeVideo } from '../lib/data'
+import { addToQueue, deleteLevel, deleteRun, refreshListRanks, removeFromQueue, removeVideo, restoreRun } from '../lib/data'
+import { pointercrateSection } from '../lib/levelInfo'
+import { useShortcut } from '../lib/shortcuts'
+import { showToast } from '../lib/toast'
+import { countdown, daysUntil } from '../lib/format'
 import { href, navigate } from '../router'
 import { DifficultyBadge, DifficultyOrb } from '../components/DifficultyBadge'
 import { NormalBar, RunBar, RunLanes, runColor } from '../components/ProgressBar'
@@ -21,6 +25,7 @@ export function LevelPage({ id }: { id: string }) {
   const [dialog, setDialog] = useState<Dialog>(null)
 
   const calc = useMemo(() => calculateRuns(runs ?? []), [runs])
+  useShortcut('n', () => setDialog({ type: 'log' }), !!level)
 
   if (level === undefined || runs === undefined) return <div className="loading outlined">Loading…</div>
   if (level === null) {
@@ -46,6 +51,11 @@ export function LevelPage({ id }: { id: string }) {
     navigate(href.library)
   }
 
+  const onDeleteRun = async (run: Run) => {
+    const deleted = await deleteRun(run)
+    showToast(`Deleted the ${range(run.start, run.end)} run.`, { label: 'Undo', run: () => restoreRun(deleted) })
+  }
+
   const onUnbeat = async () => {
     if (!confirm('Move this level back to In Progress? Its completion date and video will be removed.')) return
     await removeVideo(level.completionVideo)
@@ -66,9 +76,22 @@ export function LevelPage({ id }: { id: string }) {
             by {level.creator}
             {level.gdLevelId && <> · ID {level.gdLevelId}</>}
           </p>
-          <DifficultyBadge difficulty={level.difficulty} />
+          <div className="badge-row">
+            <DifficultyBadge difficulty={level.difficulty} />
+            <ListRankChips level={level} />
+          </div>
         </div>
         <div className="level-header-actions">
+          {!level.beaten &&
+            (level.queuePos === undefined ? (
+              <button className="gd-btn blue small" onClick={() => addToQueue(level)}>
+                + Next Up
+              </button>
+            ) : (
+              <button className="gd-btn gray small" onClick={() => removeFromQueue(level)}>
+                ✓ In Next Up
+              </button>
+            ))}
           {level.beaten ? (
             <button className="gd-btn gray small" onClick={onUnbeat}>
               Unmark beaten
@@ -88,6 +111,9 @@ export function LevelPage({ id }: { id: string }) {
       </header>
 
       {level.beaten && <CompletionPanel level={level} onEdit={() => setDialog({ type: 'beaten' })} />}
+      {!level.beaten && (level.goal || level.targetDate) && (
+        <GoalPanel level={level} onEdit={() => setDialog({ type: 'edit-level' })} />
+      )}
 
       <section className="panel hero">
         <div className="hero-count">
@@ -128,7 +154,7 @@ export function LevelPage({ id }: { id: string }) {
             Runs <span className="count">{runs.length}</span>
           </h2>
           <QuickAdd levelId={level.id} />
-          <button className="gd-btn green" onClick={() => setDialog({ type: 'log' })}>
+          <button className="gd-btn green" onClick={() => setDialog({ type: 'log' })} title="Shortcut: N">
             + Log Run
           </button>
         </div>
@@ -164,7 +190,7 @@ export function LevelPage({ id }: { id: string }) {
                     <button
                       className="icon-btn danger"
                       title="Delete run"
-                      onClick={() => confirm(`Delete the ${range(r.start, r.end)} run?`) && deleteRun(r)}
+                      onClick={() => onDeleteRun(r)}
                     >
                       🗑
                     </button>
@@ -238,5 +264,60 @@ function CompletionPanel({ level, onEdit }: { level: Level; onEdit: () => void }
         </button>
       </div>
     </section>
+  )
+}
+
+function GoalPanel({ level, onEdit }: { level: Level; onEdit: () => void }) {
+  const days = level.targetDate ? daysUntil(level.targetDate) : null
+  return (
+    <section className="panel goal-panel">
+      <span className="goal-icon" aria-hidden="true">
+        ⚑
+      </span>
+      <div className="goal-body">
+        <h2 className="outlined">{level.goal ?? 'Goal'}</h2>
+        {level.targetDate && days !== null && (
+          <p className={days < 0 ? 'warn' : 'muted'}>
+            Target {formatDate(level.targetDate)} · {countdown(days)}
+          </p>
+        )}
+      </div>
+      <button className="gd-btn blue small" onClick={onEdit}>
+        Edit
+      </button>
+    </section>
+  )
+}
+
+function ListRankChips({ level }: { level: Level }) {
+  const [checking, setChecking] = useState(false)
+  if (!level.gdLevelId) return null
+  const { pointercrate, aredl } = level.listRanks ?? {}
+
+  const refresh = async () => {
+    setChecking(true)
+    try {
+      await refreshListRanks(level)
+    } finally {
+      setChecking(false)
+    }
+  }
+
+  return (
+    <>
+      {aredl != null && (
+        <a className="chip rank-chip" href="https://aredl.net" target="_blank" rel="noreferrer" title="All Rated Extreme Demons List">
+          AREDL #{aredl}
+        </a>
+      )}
+      {pointercrate != null && (
+        <a className="chip rank-chip" href="https://pointercrate.com/demonlist/" target="_blank" rel="noreferrer" title="Pointercrate Demonlist">
+          Pointercrate #{pointercrate} · {pointercrateSection(pointercrate)}
+        </a>
+      )}
+      <button className="chip" onClick={refresh} disabled={checking} title="Check the demon lists for this level's position">
+        {checking ? 'Checking…' : level.listRanks ? '↻ List rank' : 'Check list rank'}
+      </button>
+    </>
   )
 }

@@ -2,9 +2,10 @@ import { useState, type FormEvent } from 'react'
 import { Modal } from './Modal'
 import { VideoPicker, choiceError, initialChoice, type VideoChoice } from './VideoPicker'
 import { db } from '../db'
-import { DIFFICULTIES, type Difficulty, type Level } from '../types'
+import { DIFFICULTIES, type Difficulty, type Level, type Thumbnail } from '../types'
+import { ColorSwatches, ThumbnailPicker } from './LookPickers'
 import { todayISO } from '../lib/format'
-import { applyVideoChoice } from '../lib/data'
+import { applyVideoChoice, refreshListRanks } from '../lib/data'
 
 export function BeatenModal({ level, onClose }: { level: Level; onClose: () => void }) {
   const [date, setDate] = useState(level.beatenDate ?? todayISO())
@@ -56,19 +57,32 @@ export function EditLevelModal({ level, onClose }: { level: Level; onClose: () =
   const [difficulty, setDifficulty] = useState<Difficulty>(level.difficulty)
   const [gdId, setGdId] = useState(level.gdLevelId ?? '')
   const [notes, setNotes] = useState(level.notes ?? '')
+  const [goal, setGoal] = useState(level.goal ?? '')
+  const [targetDate, setTargetDate] = useState(level.targetDate ?? '')
+  const [thumbnail, setThumbnail] = useState<Thumbnail | undefined>(level.thumbnail)
+  const [theme, setTheme] = useState(level.theme)
   const [error, setError] = useState('')
 
   const save = async (e: FormEvent) => {
     e.preventDefault()
     if (!name.trim()) return setError('Give the level a name.')
+    if (gdId.trim() && !/^\d+$/.test(gdId.trim())) return setError('Level IDs are numbers only.')
+    if (thumbnail?.kind === 'image' && !thumbnail.dataUrl) return setError('Pick an image, or choose "None".')
+    const idChanged = gdId.trim() !== (level.gdLevelId ?? '')
     await db.levels.update(level.id, {
       name: name.trim(),
       creator: creator.trim() || 'Unknown',
       difficulty,
       gdLevelId: gdId.trim() || undefined,
       notes: notes.trim() || undefined,
+      goal: goal.trim() || undefined,
+      targetDate: targetDate || undefined,
+      thumbnail,
+      theme,
+      ...(idChanged ? { listRanks: undefined } : {}),
     })
     onClose()
+    if (idChanged && gdId.trim()) refreshListRanks({ ...level, gdLevelId: gdId.trim(), listRanks: undefined })
   }
 
   return (
@@ -100,6 +114,25 @@ export function EditLevelModal({ level, onClose }: { level: Level; onClose: () =
           <span className="field-label">Notes</span>
           <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Hard parts, settings, goals…" />
         </label>
+
+        <h3 className="form-section outlined">Goal</h3>
+        <div className="row two">
+          <label className="field">
+            <span className="field-label">Goal (optional)</span>
+            <input value={goal} onChange={(e) => setGoal(e.target.value)} placeholder="e.g. Get it in 3 runs" />
+          </label>
+          <label className="field">
+            <span className="field-label">Target date (optional)</span>
+            <input type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} />
+          </label>
+        </div>
+
+        <h3 className="form-section outlined">Look</h3>
+        <ThumbnailPicker value={thumbnail} onChange={setThumbnail} />
+        <div className="field">
+          <span className="field-label">Background color on this level's page</span>
+          <ColorSwatches value={theme} onChange={setTheme} noneLabel="App theme" />
+        </div>
         {error && <p className="hint warn">{error}</p>}
         <div className="modal-actions">
           <button type="button" className="gd-btn gray" onClick={onClose}>

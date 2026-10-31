@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import type { RunCalcResult, Span } from '../lib/runCalc'
-import { pct, range } from '../lib/format'
+import { pct, range, runLabel } from '../lib/format'
 
 export const RUN_COLORS = ['#5ef55e', '#4dd8ff', '#ffd84d', '#ff7ad9', '#ff9a3d', '#a78bfa']
 export const runColor = (i: number) => RUN_COLORS[i % RUN_COLORS.length]
@@ -38,7 +38,7 @@ export function RunLanes<T extends Span>({ calc }: { calc: RunCalcResult<T> }) {
           <div className="lane-track">
             <div className="lane-seg" style={{ ...pos(r.start, r.end), '--seg': runColor(i) } as CSSProperties} />
           </div>
-          <span className="lane-range">{range(r.start, r.end)}</span>
+          <span className="lane-range">{runLabel(r.start, r.end)}</span>
         </div>
       ))}
       {calc.gap && (

@@ -686,28 +686,8 @@ textarea {
   justify-content: center;
   font-size: calc(var(--size) * 0.36);
 }
-.diff-orb.demon::before,
-.diff-orb.demon::after {
-  content: '';
-  position: absolute;
-  top: calc(var(--size) * -0.12);
-  width: 0;
-  height: 0;
-  border-left: calc(var(--size) * 0.12) solid transparent;
-  border-right: calc(var(--size) * 0.12) solid transparent;
-  border-bottom: calc(var(--size) * 0.3) solid #000;
-  z-index: -1;
-}
-.diff-orb.demon::before {
-  left: calc(var(--size) * 0.08);
-  transform: rotate(-25deg);
-}
-.diff-orb.demon::after {
-  right: calc(var(--size) * 0.08);
-  transform: rotate(25deg);
-}
 
-/* Grandpa Demon tier faces replace the orb for top-500 extreme demons. */
+/* Demons show a demon face instead of the orb (the game's faces, or Grandpa Demon tier faces). */
 .demon-face {
   position: relative;
   width: var(--size);

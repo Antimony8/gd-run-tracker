@@ -15,6 +15,7 @@ Everything is stored in your browser. There are no accounts and no server.
 - **Card thumbnails**: a color or your own image on each level card.
 - **Themes**: pick the app's background color, and give any level its own. Colors fade between pages like a GD color trigger.
 - **Run calculator**: finds the fewest runs that chain from 0 to 100, shows them on a GD-style bar with one lane per run, and highlights the missing gap if there is one.
+- **Runs from 0** show as just the percent you reached (`0–31` shows as `31%`), like a normal-mode attempt.
 - **Log runs** with decimals (e.g. `47.25`), a date, a note, and an optional video.
   - Quick add: type `25-75` in the Runs box and press Enter.
 - **Videos**: upload a clip (stored in your browser) or paste a YouTube/Medal link.
@@ -92,4 +93,4 @@ sw-template.js        Offline service worker; vite.config.ts fills in the file l
 
 Runs store a `createdAt` timestamp, which leaves room for future features like a progress-over-time graph, a death heatmap, or a stats page.
 
-Geometry Dash is a game by RobTop Games. This is a fan-made tool and isn't affiliated with RobTop. The demon tier faces in `src/assets/demons/` come from the [Grandpa Demon](https://github.com/ItzKiba/GrandpaDemon) mod by ItzKiba (Grandpa Demon sprite by tcoffa); all other art in the app is original.
+Geometry Dash is a game by RobTop Games. This is a fan-made tool and isn't affiliated with RobTop. The demon faces in `src/assets/demons/` are from Geometry Dash (Easy to Extreme Demon, by RobTop Games) and the [Grandpa Demon](https://github.com/ItzKiba/GrandpaDemon) mod by ItzKiba (the tier faces; Grandpa Demon sprite by tcoffa). All other art in the app is original.

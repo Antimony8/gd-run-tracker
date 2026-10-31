@@ -63,7 +63,14 @@ function UploadedVideo({ videoId }: { videoId: string }) {
     }
   }, [videoId])
 
-  if (state.missing) return <p className="hint warn">This video file is missing from storage.</p>
+  if (state.missing) {
+    return (
+      <p className="hint warn">
+        This video file isn't on this device. Uploaded videos stay on the device they were added on (only links sync), so
+        watch it there, or edit the run and use a YouTube or Medal link instead.
+      </p>
+    )
+  }
   if (!state.url) return <p className="muted">Loading video…</p>
   return (
     <div className="video-frame">

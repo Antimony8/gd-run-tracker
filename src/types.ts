@@ -31,6 +31,25 @@ export interface Level {
   beatenDate?: string // YYYY-MM-DD
   completionVideo?: VideoRef
   notes?: string
+  /** Position in the "Next Up" queue (lower comes first). Unset = not queued. */
+  queuePos?: number
+  /** Free-text goal, e.g. "Get it in 3 runs". */
+  goal?: string
+  targetDate?: string // YYYY-MM-DD
+  thumbnail?: Thumbnail
+  /** Background color used while viewing this level. Unset = the app theme. */
+  theme?: string
+  listRanks?: ListRanks
+}
+
+/** Card art: a solid color or a small image (stored as a downscaled data URL). */
+export type Thumbnail = { kind: 'color'; color: string } | { kind: 'image'; dataUrl: string }
+
+/** Positions on community demon lists. null = checked and not on that list. */
+export interface ListRanks {
+  pointercrate?: number | null
+  aredl?: number | null
+  checkedAt: number
 }
 
 export interface Run {
@@ -51,4 +70,10 @@ export interface StoredVideo {
   type: string
   size: number
   createdAt: number
+}
+
+/** App-wide preferences and bookkeeping, stored one row per key. */
+export interface Setting {
+  key: string
+  value: unknown
 }

@@ -33,7 +33,8 @@ export async function exportBackup(onProgress?: (percent: number) => void): Prom
   const [levels, runs, videos, settings] = await Promise.all([
     db.levels.toArray(),
     db.runs.toArray(),
-    db.videos.toArray(),
+    // Local copies of Google Drive videos are left out; the files themselves are safe in Drive.
+    db.videos.filter((v) => !v.id.startsWith('drive:')).toArray(),
     db.settings.where('key').anyOf(BACKED_UP_SETTINGS).toArray(),
   ])
   const zip = new JSZip()

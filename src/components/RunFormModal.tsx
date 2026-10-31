@@ -4,7 +4,8 @@ import { VideoPicker, choiceError, initialChoice, type VideoChoice } from './Vid
 import { db } from '../db'
 import type { Run } from '../types'
 import { round2, todayISO, uid, validateRun } from '../lib/format'
-import { applyVideoChoice } from '../lib/data'
+import { applyVideoChoice, needsDrive, saveErrorMessage } from '../lib/data'
+import { ensureDriveAccess } from '../lib/googleDrive'
 
 interface Props {
   levelId: string
@@ -20,6 +21,7 @@ export function RunFormModal({ levelId, run, onClose }: Props) {
   const [video, setVideo] = useState<VideoChoice>(initialChoice(run?.video))
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [status, setStatus] = useState('')
 
   const save = async (e: FormEvent) => {
     e.preventDefault()
@@ -30,7 +32,9 @@ export function RunFormModal({ levelId, run, onClose }: Props) {
 
     setSaving(true)
     try {
-      const videoRef = await applyVideoChoice(video, run?.video)
+      // Ask for Google access first, while this still counts as the user's tap.
+      if (needsDrive(video)) await ensureDriveAccess()
+      const videoRef = await applyVideoChoice(video, run?.video, setStatus)
       const data: Run = {
         id: run?.id ?? uid(),
         levelId,
@@ -44,8 +48,9 @@ export function RunFormModal({ levelId, run, onClose }: Props) {
       await db.runs.put(data)
       onClose()
     } catch (err) {
-      setError(err instanceof Error && err.name === 'QuotaExceededError' ? 'Browser storage is full.' : 'Saving failed.')
+      setError(saveErrorMessage(err))
       setSaving(false)
+      setStatus('')
     }
   }
 
@@ -77,7 +82,7 @@ export function RunFormModal({ levelId, run, onClose }: Props) {
             Cancel
           </button>
           <button type="submit" className="gd-btn green" disabled={saving}>
-            {saving ? 'Saving…' : run ? 'Save' : 'Log Run'}
+            {saving ? status || 'Saving…' : run ? 'Save' : 'Log Run'}
           </button>
         </div>
       </form>

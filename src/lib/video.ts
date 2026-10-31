@@ -63,3 +63,52 @@ export function linkLabel(url: string): string {
     return 'Link'
   }
 }
+
+interface TweetVideoSource {
+  url: string
+  bitrate: number
+}
+
+/**
+ * Pulls playable MP4 addresses out of an FxTwitter API reply. Handles both the v1 shape
+ * ({ tweet: { media: { videos } } }) and v2 ({ status: { media: { videos } } }), including
+ * per-quality variants, and returns the best quality first.
+ */
+export function tweetVideoUrls(reply: unknown): string[] {
+  const post = (reply as { tweet?: unknown; status?: unknown })?.tweet ?? (reply as { status?: unknown })?.status
+  const videos = (post as { media?: { videos?: unknown } })?.media?.videos
+  if (!Array.isArray(videos)) return []
+  const sources: TweetVideoSource[] = []
+  for (const v of videos) {
+    const variants = v?.variants ?? v?.formats
+    if (Array.isArray(variants)) {
+      for (const f of variants) {
+        const isMp4 = /mp4/i.test(String(f?.container ?? f?.content_type ?? f?.url ?? ''))
+        if (typeof f?.url === 'string' && isMp4) sources.push({ url: f.url, bitrate: Number(f.bitrate) || 0 })
+      }
+    }
+    if (typeof v?.url === 'string' && !sources.some((s) => s.url === v.url)) {
+      sources.push({ url: v.url, bitrate: Number(v.bitrate) || 0 })
+    }
+  }
+  // Prefer MP4 over streaming playlists, then the highest bitrate.
+  return sources
+    .filter((s) => !/\.m3u8(\?|$)/.test(s.url))
+    .sort((a, b) => b.bitrate - a.bitrate)
+    .map((s) => s.url)
+}
+
+/** Looks up a post's video files through the free FxTwitter API. Returns [] if it can't. */
+export async function fetchTweetVideo(id: string): Promise<string[]> {
+  for (const url of [`https://api.fxtwitter.com/2/status/${id}`, `https://api.fxtwitter.com/status/${id}`]) {
+    try {
+      const res = await fetch(url)
+      if (!res.ok) continue
+      const found = tweetVideoUrls(await res.json())
+      if (found.length) return found
+    } catch {
+      // Try the next endpoint, then fall back to X's embed.
+    }
+  }
+  return []
+}

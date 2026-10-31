@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Modal } from './Modal'
 import { db } from '../db'
 import type { VideoRef } from '../types'
-import { linkLabel, playsInApp, tweetId, youtubeId } from '../lib/video'
+import { fetchTweetVideo, linkLabel, playsInApp, tweetId, youtubeId } from '../lib/video'
 import { downloadFromDrive, driveCacheId, driveEnabled, ensureDriveAccess, hasDriveAccess, preloadDrive } from '../lib/googleDrive'
 
 /** A button that plays an attached video: uploads, Drive videos and YouTube links in a modal, other links in a new tab. */
@@ -57,16 +57,40 @@ function VideoModal({ video, title, onClose }: { video: VideoRef; title: string;
   )
 }
 
-/** A Twitter/X post shown with X's own embedded player, plus a link out in case it won't load. */
+/**
+ * A Twitter/X video. Plays the post's MP4 directly in the app when it can be found (via FxTwitter);
+ * otherwise falls back to X's embedded post. A link out is always there too.
+ */
 function TweetVideo({ id, url, title }: { id: string; url: string; title: string }) {
+  const [sources, setSources] = useState<string[] | null>(null)
+  const [failed, setFailed] = useState(0)
+
+  useEffect(() => {
+    let live = true
+    fetchTweetVideo(id).then((found) => live && setSources(found))
+    return () => {
+      live = false
+    }
+  }, [id])
+
+  // If a video file won't play, try the next quality, then the embed.
+  const src = sources?.[failed]
   return (
     <div className="tweet-embed">
-      <iframe
-        src={`https://platform.twitter.com/embed/Tweet.html?id=${id}&theme=dark&dnt=true`}
-        title={title}
-        allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-        allowFullScreen
-      />
+      {sources === null ? (
+        <p className="muted">Loading video…</p>
+      ) : src ? (
+        <div className="video-frame">
+          <video key={src} src={src} controls autoPlay playsInline onError={() => setFailed((n) => n + 1)} />
+        </div>
+      ) : (
+        <iframe
+          src={`https://platform.twitter.com/embed/Tweet.html?id=${id}&theme=dark&dnt=true`}
+          title={title}
+          allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+          allowFullScreen
+        />
+      )}
       <a className="text-link" href={url} target="_blank" rel="noreferrer">
         Open on X ↗
       </a>

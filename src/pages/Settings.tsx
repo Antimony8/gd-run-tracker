@@ -11,6 +11,8 @@ import { useInstallPrompt } from '../lib/pwa'
 import { ColorSwatches } from '../components/LookPickers'
 import { ImportModal } from '../components/ImportModal'
 import { SyncCard } from '../components/SyncCard'
+import { DeathTrackerModal } from '../components/DeathTrackerModal'
+import { planDeathTrackerImport, readDeathTrackerFolder, type DTPlan } from '../lib/deathTracker'
 import { readSpreadsheet } from '../lib/sheetReader'
 import { parseSheets, type ImportRow } from '../lib/spreadsheetImport'
 import type { Level } from '../types'
@@ -31,6 +33,7 @@ export function Settings() {
   const theme = useSetting('theme')
   const lastBackup = useSetting('lastBackupAt')
   const install = useInstallPrompt()
+  const [dtPlans, setDtPlans] = useState<DTPlan[] | null>(null)
   const [sheetImport, setSheetImport] = useState<{ fileName: string; rows: ImportRow[]; levels: Level[] } | null>(null)
 
   const refresh = async () => {
@@ -96,6 +99,27 @@ export function Settings() {
       setSheetImport({ fileName: file.name, rows, levels: await db.levels.toArray() })
     } catch (err) {
       setMessage({ type: 'warn', text: err instanceof Error ? err.message : "That spreadsheet couldn't be read." })
+    }
+  }
+
+  const onDeathTrackerFolder = async (files: FileList | null) => {
+    if (!files?.length) return
+    setMessage(null)
+    setBusy('Reading Death Tracker files…')
+    try {
+      const found = await readDeathTrackerFolder(Array.from(files))
+      if (found.length === 0) {
+        setMessage({
+          type: 'warn',
+          text: "No Death Tracker data found in that folder. Pick the mod's \"levels\" folder (see the path above).",
+        })
+        return
+      }
+      setDtPlans(planDeathTrackerImport(found, await db.levels.toArray()))
+    } catch {
+      setMessage({ type: 'warn', text: "That folder couldn't be read." })
+    } finally {
+      setBusy(null)
     }
   }
 
@@ -250,6 +274,32 @@ export function Settings() {
       </section>
 
       <section className="panel settings-card">
+        <h2 className="outlined">Death Tracker</h2>
+        <p>
+          Import attempts, where you die most, playtime and recorded runs from the <strong>Death Tracker</strong> Geode mod.
+          On your PC, pick the mod's <strong>levels</strong> folder:
+        </p>
+        <code className="path">%LOCALAPPDATA%\GeometryDash\geode\mods\elohmrow.death_tracker\levels</code>
+        <p className="hint">
+          Tip: paste that path into the folder picker's address bar. If you changed the mod's Save Path setting, use that
+          folder instead. The app only reads the files.
+        </p>
+        <label className="file-drop">
+          <input
+            type="file"
+            {...{ webkitdirectory: '', directory: '' }}
+            multiple
+            onChange={(e) => {
+              onDeathTrackerFolder(e.target.files)
+              e.target.value = ''
+            }}
+            disabled={!!busy}
+          />
+          <span>📂 Choose the Death Tracker folder</span>
+        </label>
+      </section>
+
+      <section className="panel settings-card">
         <h2 className="outlined">Import Spreadsheet</h2>
         <p>
           Bring in levels from an Excel (.xlsx) or .csv file. It needs a <strong>Level</strong> column; it also picks up
@@ -275,6 +325,7 @@ export function Settings() {
           Delete all data
         </button>
       </section>
+      {dtPlans && <DeathTrackerModal plans={dtPlans} onClose={() => setDtPlans(null)} />}
       {sheetImport && <ImportModal {...sheetImport} onClose={() => setSheetImport(null)} />}
     </div>
   )

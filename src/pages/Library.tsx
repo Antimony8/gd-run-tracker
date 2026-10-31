@@ -14,6 +14,7 @@ import { DifficultyBadge, DifficultyOrb } from '../components/DifficultyBadge'
 import { compareHardest, demonTier } from '../lib/demonTier'
 import { AddLevelModal } from '../components/AddLevelModal'
 import { href } from '../router'
+import logo from '../assets/logo.svg'
 
 type Sort = 'recent' | 'runs' | 'difficulty' | 'list' | 'name'
 
@@ -72,14 +73,8 @@ export function Library() {
   return (
     <div className="page">
       <header className="top-bar">
-        {/* Two stacked copies: the back one draws the outlines and shadow, the front one the gradient. */}
-        <h1 className="logo" aria-label="Run Tracker">
-          <span className="logo-back" aria-hidden="true">
-            RUN TRACKER
-          </span>
-          <span className="logo-front" aria-hidden="true">
-            RUN TRACKER
-          </span>
+        <h1 className="logo">
+          <img src={logo} alt="Run Tracker" />
         </h1>
         <div className="top-actions">
           <a className="gd-btn gray small" href={href.settings}>

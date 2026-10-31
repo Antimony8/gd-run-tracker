@@ -72,8 +72,14 @@ export function Library() {
   return (
     <div className="page">
       <header className="top-bar">
-        <h1 className="logo outlined">
-          RUN <span>TRACKER</span>
+        {/* Two stacked copies: the back one draws the outlines and shadow, the front one the gradient. */}
+        <h1 className="logo" aria-label="Run Tracker">
+          <span className="logo-back" aria-hidden="true">
+            RUN TRACKER
+          </span>
+          <span className="logo-front" aria-hidden="true">
+            RUN TRACKER
+          </span>
         </h1>
         <div className="top-actions">
           <a className="gd-btn gray small" href={href.settings}>

@@ -6,7 +6,7 @@ Everything is stored in your browser. There are no accounts and no server.
 
 ## Features
 
-- **Level library** with Next Up, In Progress and Completed sections, search, and sorting (including by demon list rank). Your hardest completion gets a shiny gold frame, and cards show your attempt count when you've logged one.
+- **Level library** with In Progress, Completed and a collapsible Next Up section, search, and sorting (including by demon list rank). Your hardest completion gets a shiny gold frame, and cards show your attempt count when you've logged one.
 - **Next Up queue**: line up the levels you'll play next and reorder them.
 - **Goals**: give a level a goal ("Get it in 3 runs") and a target date with a countdown.
 - **Add levels by ID**: details auto-fill from [GDBrowser](https://gdbrowser.com), falling back to GDBrowser search, [GDHistory](https://history.geometrydash.eu), and the demon lists if a service is down. You can always enter them by hand.
@@ -98,4 +98,4 @@ sw-template.js        Offline service worker; vite.config.ts fills in the file l
 
 Runs store a `createdAt` timestamp, which leaves room for future features like a progress-over-time graph, a death heatmap, or a stats page.
 
-Geometry Dash is a game by RobTop Games. This is a fan-made tool and isn't affiliated with RobTop. The demon faces in `src/assets/demons/` are from Geometry Dash (Easy to Extreme Demon, by RobTop Games) and the [Grandpa Demon](https://github.com/ItzKiba/GrandpaDemon) mod by ItzKiba (the tier faces; Grandpa Demon sprite by tcoffa). The display font is Pusab by Ryoichi Tsunekawa (Flat-it), the font Geometry Dash uses; it is freeware. All other art in the app is original.
+Geometry Dash is a game by RobTop Games. This is a fan-made tool and isn't affiliated with RobTop. The demon faces in `src/assets/demons/` are from Geometry Dash (Easy to Extreme Demon, by RobTop Games) and the [Grandpa Demon](https://github.com/ItzKiba/GrandpaDemon) mod by ItzKiba (the tier faces; Grandpa Demon sprite by tcoffa). The logo lettering (`src/assets/logo.svg`) is set in Oxygene 1 by Jakob Fischer (pizzadude.dk) and saved as an image; the font file itself isn't included. The display font is Pusab by Ryoichi Tsunekawa (Flat-it), the font Geometry Dash uses; it is freeware. All other art in the app is original.

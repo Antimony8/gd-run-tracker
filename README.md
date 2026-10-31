@@ -22,6 +22,7 @@ Everything is stored in your browser. There are no accounts and no server.
 - **Mark levels beaten** with a completion date and video.
 - **Undo** after deleting a run.
 - **Keyboard shortcuts**: `N` new run, `/` search, `A` add level, `?` for the list.
+- **Import a spreadsheet** (.xlsx or .csv) in Settings. It reads columns by their headers (Level, AREDL Rank, Status, Best from 0, Best Runs, Attempts, Notes…), understands section headings like "Next Up" or "Plan to Play", and shows a preview before saving. It can also look up level IDs and current ranks on the AREDL by name.
 - **Backup and restore**: one .zip file with all your data and videos, plus a reminder if you haven't backed up in a week.
 - **Installable (PWA)**: add it to your desktop or home screen and it works offline.
 
@@ -73,6 +74,9 @@ src/
     backup.ts         Zip export/import
     data.ts           Saving/deleting levels, runs and videos; Next Up queue
     levelInfo.ts      Level lookup by ID and demon list ranks (+ tests)
+    sheetReader.ts    Reads .xlsx and .csv files into rows
+    spreadsheetImport.ts  Turns spreadsheet rows into levels and runs (+ tests)
+    demonTier.ts      Grandpa Demon tiers from AREDL position (+ tests)
     format.ts         Number/date formatting and validation (+ tests)
     settings.ts       App settings stored in IndexedDB
     theme.ts          Background color themes

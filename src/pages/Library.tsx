@@ -88,6 +88,9 @@ export function Library() {
           <button className="gd-btn green big" onClick={() => setAdding(true)}>
             + Add your first level
           </button>
+          <p>
+            Already tracking in a spreadsheet? <a className="text-link" href={href.settings}>Import it in Settings</a>.
+          </p>
         </div>
       ) : (
         <>

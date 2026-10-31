@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Dexie Cloud CLI credentials (keep secret)
+dexie-cloud.json
+dexie-cloud.key

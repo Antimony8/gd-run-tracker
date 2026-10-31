@@ -3,6 +3,9 @@ import dexieCloud from 'dexie-cloud-addon'
 import type { Level, Run, Setting, StoredVideo } from './types'
 import { DEXIE_CLOUD_URL } from './syncConfig'
 
+/** Source key for Death Tracker stats imported before sources were tracked separately. */
+export const LEGACY_SOURCE = 'earlier-import'
+
 export const db = new Dexie('gd-run-tracker', { addons: [dexieCloud] }) as Dexie & {
   levels: EntityTable<Level, 'id'>
   runs: EntityTable<Run, 'id'>
@@ -49,3 +52,19 @@ if (DEXIE_CLOUD_URL) {
     tryUseServiceWorker: false,
   })
 }
+
+// Death Tracker stats used to be one flat record; they're now kept per source (online level, editor copies).
+db.version(4).upgrade((tx) =>
+  tx
+    .table('levels')
+    .toCollection()
+    .modify((level: Level & { deathStats?: Record<string, unknown> }) => {
+      const old = level.deathStats
+      if (!old || 'sources' in old) return
+      const { importedAt, ...source } = old as { importedAt: number } & Record<string, unknown>
+      level.deathStats = {
+        sources: { [level.gdLevelId ?? LEGACY_SOURCE]: { name: level.name, editor: false, ...source } },
+        importedAt,
+      } as never
+    }),
+)

@@ -19,7 +19,13 @@ export default function App() {
 
   return (
     <>
-      <div className="bg-ground" aria-hidden="true" />
+      <div className="bg-scene" aria-hidden="true">
+        <div className="bg-tiles" />
+        <div className="bg-glow" />
+        <div className="bg-far" />
+        <div className="bg-near" />
+        <div className="bg-ground" />
+      </div>
       {route.page === 'level' ? (
         <LevelPage key={route.id} id={route.id} />
       ) : route.page === 'settings' ? (

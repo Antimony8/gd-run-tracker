@@ -18,3 +18,18 @@ db.version(1).stores({
 db.version(2).stores({
   settings: 'key',
 })
+
+// Attempts used to be imported into notes as an "Attempts: 1,234" line; give them their own field.
+const ATTEMPTS_NOTE = /^Attempts: ([\d,]+)$/m
+
+db.version(3).upgrade((tx) =>
+  tx
+    .table('levels')
+    .toCollection()
+    .modify((level: Level) => {
+      const m = level.notes?.match(ATTEMPTS_NOTE)
+      if (!m || level.attempts !== undefined) return
+      level.attempts = Number(m[1].replace(/,/g, ''))
+      level.notes = level.notes!.replace(ATTEMPTS_NOTE, '').replace(/\n{2,}/g, '\n').trim() || undefined
+    }),
+)

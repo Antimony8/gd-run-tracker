@@ -91,14 +91,14 @@ body {
   min-height: 100%;
 }
 
+/* The gradient sits on html so the fixed background scene (z-index -1) can paint above it. */
 html {
-  background: var(--bg-3);
+  background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 45%, var(--bg-3) 100%) fixed var(--bg-3);
 }
 
 body {
   font-family: var(--font-body);
   color: var(--text);
-  background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 45%, var(--bg-3) 100%) fixed;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
@@ -107,22 +107,53 @@ body.modal-open {
   overflow: hidden;
 }
 
-/* Faint block grid in the background, like GD's level backgrounds */
-body::before {
-  content: '';
+/* Background scenery: block tiles, light, and silhouettes in darker shades of the theme color. */
+.bg-scene {
   position: fixed;
   inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.045) 2px, transparent 2px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 2px, transparent 2px);
-  background-size: 96px 96px;
   pointer-events: none;
-  z-index: -2;
+  z-index: -1;
+  overflow: hidden;
+}
+.bg-tiles {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='384' height='384'%3E %3Cg fill='white' fill-opacity='0.035'%3E %3Crect x='8' y='8' width='176' height='176' rx='8'/%3E%3Crect x='296' y='8' width='80' height='80' rx='5'/%3E %3Crect x='104' y='200' width='272' height='176' rx='8'/%3E%3C/g%3E %3Cg fill='none' stroke='white' stroke-opacity='0.07' stroke-width='3'%3E %3Crect x='8' y='8' width='176' height='176' rx='8'/%3E%3Crect x='200' y='8' width='80' height='80' rx='5'/%3E %3Crect x='296' y='8' width='80' height='80' rx='5'/%3E%3Crect x='200' y='104' width='176' height='80' rx='5'/%3E %3Crect x='8' y='200' width='80' height='176' rx='5'/%3E%3Crect x='104' y='200' width='272' height='176' rx='8'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 384px 384px;
+}
+.bg-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 45% at 15% 0%, rgba(255, 255, 255, 0.2), transparent 70%),
+    radial-gradient(ellipse 45% 35% at 90% 8%, rgba(255, 255, 255, 0.12), transparent 70%),
+    radial-gradient(ellipse 80% 40% at 50% 100%, rgba(0, 0, 0, 0.35), transparent 70%);
+}
+.bg-far,
+.bg-near {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 72px;
+  -webkit-mask: var(--shape) repeat-x left bottom / auto 100%;
+  mask: var(--shape) repeat-x left bottom / auto 100%;
+}
+.bg-far {
+  --shape: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='220'%3E %3Cpath d='M0 220V150h90v-50h60v120zM150 220V120h70v100zM260 220v-60h40v-40h40v-40h40v140z M430 220V60h110v160zM460 60l25-40 25 40zM580 220v-90h50v-30h50v120zM720 220V140h140v80z M890 220V80h80v140zM900 80l15-26 15 26zM940 80l15-26 15 26zM1010 220v-70h60v-40h80v110h50v0z'/%3E%3C/svg%3E");
+  height: 220px;
+  background: color-mix(in srgb, var(--bg-2) 70%, black);
+  opacity: 0.45;
+}
+.bg-near {
+  --shape: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='960' height='140'%3E %3Cpath d='M0 140V100h40v40zM40 140l20-34 20 34zM80 140l20-34 20 34zM150 140V60h40v80zM190 140v-40h40v40z M270 140l20-34 20 34zM330 140V20h40v120zM330 20l20-20 20 20zM400 140v-40h80v40zM480 140v-80h40v80z M560 140l20-34 20 34zM600 140l20-34 20 34zM640 140l20-34 20 34zM700 140V80h40v-40h40v100zM820 140v-30h100v30z M870 110l20-30 20 30z'/%3E%3C/svg%3E");
+  height: 140px;
+  background: color-mix(in srgb, var(--bg-3) 80%, black);
+  opacity: 0.85;
 }
 
 /* Ground strip pinned to the bottom of the screen */
 .bg-ground {
-  position: fixed;
+  position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
@@ -131,8 +162,7 @@ body::before {
     linear-gradient(90deg, rgba(255, 255, 255, 0.06) 2px, transparent 2px) 0 0 / 72px 72px,
     linear-gradient(180deg, var(--ground-top), var(--ground));
   border-top: 3px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 -6px 24px rgba(0, 20, 90, 0.6);
-  z-index: -1;
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.45);
 }
 
 #root {
@@ -1380,6 +1410,72 @@ kbd {
   border: 2px solid #000;
   background: rgba(255, 255, 255, 0.14);
   box-shadow: 0 3px 0 #000;
+}
+
+/* ---------- Hardest completion ---------- */
+.level-card.hardest {
+  border-color: #ffd23f;
+  animation: hardest-glow 2.6s ease-in-out infinite;
+}
+/* A shine that sweeps across the card. */
+.level-card.hardest::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 244, 190, 0.28) 50%, transparent 65%);
+  transform: translateX(-100%);
+  animation: hardest-shine 4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes hardest-glow {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 0 0 2px rgba(255, 242, 168, 0.75),
+      0 0 10px rgba(255, 210, 63, 0.45),
+      0 6px 0 rgba(0, 0, 0, 0.35);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 2px rgba(255, 242, 168, 1),
+      0 0 24px rgba(255, 210, 63, 0.85),
+      0 6px 0 rgba(0, 0, 0, 0.35);
+  }
+}
+@keyframes hardest-shine {
+  0%,
+  55% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+.hardest-chip {
+  cursor: default;
+  font-size: 13px;
+  color: #3a2600;
+  text-shadow: none;
+  background: linear-gradient(180deg, #fff2a8, #ffd23f 55%, #e0a400);
+  border-color: #000;
+}
+.hardest-chip:hover {
+  transform: none;
+  background: linear-gradient(180deg, #fff2a8, #ffd23f 55%, #e0a400);
+}
+
+/* Attempt count in a card's bottom-right corner */
+.level-card.has-attempts {
+  padding-bottom: 34px;
+}
+.card-attempts {
+  position: absolute;
+  right: 14px;
+  bottom: 15px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- Spreadsheet import ---------- */

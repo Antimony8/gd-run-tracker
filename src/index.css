@@ -1554,6 +1554,133 @@ kbd {
   gap: 12px;
 }
 
+/* ---------- Death Tracker ---------- */
+.death-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.death-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.death-head h2 {
+  font-size: 28px;
+}
+.death-source {
+  font-size: 13px;
+  font-weight: 700;
+}
+.death-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.death-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 96px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(0, 0, 0, 0.6);
+  border-radius: 10px;
+}
+.death-stat-value {
+  font-size: 22px;
+  line-height: 1.1;
+}
+.death-readout {
+  font-weight: 700;
+  min-height: 1.4em;
+}
+.death-chart {
+  --bar: #3cc4f0;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 150px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.35);
+}
+.death-col {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  cursor: pointer;
+  border-radius: 2px 2px 0 0;
+}
+.death-col:hover,
+.death-col.active {
+  background: rgba(255, 255, 255, 0.08);
+}
+.death-bar {
+  width: 100%;
+  background: var(--bar);
+  border-radius: 2px 2px 0 0;
+}
+.death-col.active .death-bar,
+.death-col:hover .death-bar {
+  background: color-mix(in srgb, var(--bar) 70%, white);
+}
+.death-axis {
+  position: relative;
+  height: 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.death-axis span {
+  position: absolute;
+  transform: translateX(-50%);
+}
+.death-axis span:first-child {
+  transform: none;
+}
+.death-axis span:last-child {
+  transform: translateX(-100%);
+}
+.death-top {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+.death-top li {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-weight: 700;
+}
+.death-rank {
+  /* Body font: Pusab draws "#" as a numero sign. */
+  font-weight: 800;
+  color: var(--gold);
+}
+code.path {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+  font-size: 13px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid #000;
+  border-radius: 8px;
+  user-select: all;
+}
+.link-btn {
+  all: unset;
+  color: var(--gold);
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 800;
+}
+
 /* ---------- Spreadsheet import ---------- */
 .import-list {
   list-style: none;
@@ -1675,6 +1802,10 @@ kbd {
   .import-row {
     grid-template-columns: 1fr;
     gap: 6px;
+  }
+  .death-chart {
+    gap: 1px;
+    height: 120px;
   }
 }
 

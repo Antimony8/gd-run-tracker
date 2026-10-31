@@ -15,6 +15,7 @@ import { DifficultyBadge, DifficultyOrb } from '../components/DifficultyBadge'
 import { demonTier } from '../lib/demonTier'
 import { NormalBar, RunBar, RunLanes, runColor } from '../components/ProgressBar'
 import { RunFormModal } from '../components/RunFormModal'
+import { DeathChart } from '../components/DeathChart'
 import { VideoButton } from '../components/VideoModal'
 import { BeatenModal, EditLevelModal } from '../components/LevelModals'
 
@@ -209,6 +210,8 @@ export function LevelPage({ id }: { id: string }) {
           </ul>
         )}
       </section>
+
+      {level.deathStats && <DeathChart stats={level.deathStats} />}
 
       {level.notes && (
         <section className="panel notes">

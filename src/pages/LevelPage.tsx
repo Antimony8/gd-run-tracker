@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../db'
 import type { Level, Run } from '../types'
 import { calculateRuns } from '../lib/runCalc'
-import { formatDate, parseQuickRun, pct, range, todayISO, uid, validateRun } from '../lib/format'
+import { formatDate, parseQuickRun, pct, range, runLabel, todayISO, uid, validateRun } from '../lib/format'
 import { addToQueue, deleteLevel, deleteRun, refreshListRanks, removeFromQueue, removeVideo, restoreRun } from '../lib/data'
 import { pointercrateSection } from '../lib/levelInfo'
 import { useShortcut } from '../lib/shortcuts'
@@ -55,7 +55,7 @@ export function LevelPage({ id }: { id: string }) {
 
   const onDeleteRun = async (run: Run) => {
     const deleted = await deleteRun(run)
-    showToast(`Deleted the ${range(run.start, run.end)} run.`, { label: 'Undo', run: () => restoreRun(deleted) })
+    showToast(`Deleted the ${runLabel(run.start, run.end)} run.`, { label: 'Undo', run: () => restoreRun(deleted) })
   }
 
   const onUnbeat = async () => {
@@ -137,7 +137,7 @@ export function LevelPage({ id }: { id: string }) {
             {calc.complete
               ? calc.chain.length === 1
                 ? 'You have a full 0–100 run!'
-                : `You have it in ${calc.chain.length} runs: ${calc.chain.map((r) => range(r.start, r.end)).join(' → ')}`
+                : `You have it in ${calc.chain.length} runs: ${calc.chain.map((r) => runLabel(r.start, r.end)).join(' → ')}`
               : runs.length
                 ? `Chained to ${pct(calc.reach)}. Missing ${range(calc.gap!.from, calc.gap!.to)}.`
                 : 'Log your first run below.'}
@@ -170,7 +170,7 @@ export function LevelPage({ id }: { id: string }) {
               return (
                 <li key={r.id} className={`run-row ${ci !== undefined ? 'in-chain' : ''}`}>
                   <span className="run-range outlined" style={ci !== undefined ? { color: runColor(ci) } : undefined}>
-                    {range(r.start, r.end)}
+                    {runLabel(r.start, r.end)}
                   </span>
                   <div className="run-mini">
                     <div
@@ -185,7 +185,7 @@ export function LevelPage({ id }: { id: string }) {
                   <span className="run-note">{r.note}</span>
                   <span className="run-actions">
                     {ci !== undefined && <span className="chip chain-chip">Run {ci + 1}</span>}
-                    {r.video && <VideoButton video={r.video} title={`${level.name}: ${range(r.start, r.end)}`} />}
+                    {r.video && <VideoButton video={r.video} title={`${level.name}: ${runLabel(r.start, r.end)}`} />}
                     <button className="icon-btn" title="Edit run" onClick={() => setDialog({ type: 'edit-run', run: r })}>
                       ✎
                     </button>

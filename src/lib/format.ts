@@ -8,6 +8,9 @@ export const pct = (n: number) => `${round2(n)}%`
 
 export const range = (start: number, end: number) => `${round2(start)}–${round2(end)}%`
 
+/** A run's label. Runs from 0 read like a normal-mode attempt: 0–31 -> "31%", 25–75 -> "25–75%". */
+export const runLabel = (start: number, end: number) => (start === 0 ? pct(end) : range(start, end))
+
 export function todayISO(): string {
   const d = new Date()
   const m = String(d.getMonth() + 1).padStart(2, '0')

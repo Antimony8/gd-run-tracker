@@ -12,6 +12,11 @@ import mediumDemon from '../assets/demons/medium.png'
 import hardDemon from '../assets/demons/hard.png'
 import insaneDemon from '../assets/demons/insane.png'
 import extremeDemon from '../assets/demons/extreme.png'
+import easyFace from '../assets/faces/easy.png'
+import normalFace from '../assets/faces/normal.png'
+import hardFace from '../assets/faces/hard.png'
+import harderFace from '../assets/faces/harder.png'
+import insaneFace from '../assets/faces/insane.png'
 
 export const DIFFICULTY_COLORS: Record<Difficulty, string> = {
   Unrated: '#9aa3b5',
@@ -31,8 +36,13 @@ export const DIFFICULTY_COLORS: Record<Difficulty, string> = {
 // Demon faces from the Grandpa Demon mod's sprite sheet.
 const TIER_FACES: Record<DemonTierId, string> = { grandpa, infinite, mythical, legendary, ultimate, supreme }
 
-// The game's own demon faces.
-const DEMON_FACES: Partial<Record<Difficulty, string>> = {
+// The game's own difficulty faces. Unrated and Auto keep the plain orb.
+const DIFFICULTY_FACES: Partial<Record<Difficulty, string>> = {
+  Easy: easyFace,
+  Normal: normalFace,
+  Hard: hardFace,
+  Harder: harderFace,
+  Insane: insaneFace,
   'Easy Demon': easyDemon,
   'Medium Demon': mediumDemon,
   'Hard Demon': hardDemon,
@@ -61,13 +71,13 @@ interface Props {
   tier?: DemonTier | null
 }
 
-/** Round "difficulty orb" for non-demons; demons show their demon face, tiered extremes their tier's face. */
+/** The level's difficulty face from the game (tiered extremes get their tier's face), or a plain orb for Unrated and Auto. */
 export function DifficultyOrb({ difficulty, tier, size = 56 }: Props & { size?: number }) {
-  const face = tier ? TIER_FACES[tier.id] : DEMON_FACES[difficulty]
+  const face = tier ? TIER_FACES[tier.id] : DIFFICULTY_FACES[difficulty]
   if (face) {
     const name = tier?.name ?? difficulty
     return (
-      <div className={`demon-face ${tier ? `tier-${tier.id}` : ''}`} style={{ '--size': `${size}px` } as CSSProperties} title={name}>
+      <div className={`demon-face ${tier ? `tier-${tier.id}` : difficulty.endsWith('Demon') ? '' : 'round-face'}`} style={{ '--size': `${size}px` } as CSSProperties} title={name}>
         <img src={face} alt={name} draggable={false} />
       </div>
     )

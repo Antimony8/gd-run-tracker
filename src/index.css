@@ -765,7 +765,7 @@ textarea {
   font-size: calc(var(--size) * 0.36);
 }
 
-/* Demons show a demon face instead of the orb (the game's faces, or Grandpa Demon tier faces). */
+/* Rated levels show their difficulty face instead of the orb (the game's faces, or Grandpa Demon tier faces). */
 .demon-face {
   position: relative;
   width: var(--size);
@@ -781,6 +781,11 @@ textarea {
   object-fit: contain;
   filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.45));
   user-select: none;
+}
+/* Non-demon faces have no horns, so they fill their box like the orb did. */
+.demon-face.round-face img {
+  width: 100%;
+  height: 100%;
 }
 .demon-face.tier-infinite img {
   filter: drop-shadow(0 0 6px rgba(255, 210, 63, 0.55)) drop-shadow(0 3px 0 rgba(0, 0, 0, 0.45));

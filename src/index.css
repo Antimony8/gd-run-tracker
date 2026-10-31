@@ -1681,6 +1681,38 @@ code.path {
   font-weight: 800;
 }
 
+/* Death Tracker import: one section each for server and editor levels. */
+.dt-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 2px solid rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+}
+.dt-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.dt-group-head h3 {
+  font-size: 20px;
+}
+.dt-group-hint {
+  font-size: 13px;
+  font-weight: 700;
+}
+.dt-group-actions {
+  display: flex;
+  gap: 8px;
+}
+.import-list.dt-list {
+  max-height: 32vh;
+}
+
 /* ---------- Spreadsheet import ---------- */
 .import-list {
   list-style: none;

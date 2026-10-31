@@ -57,6 +57,7 @@ export function EditLevelModal({ level, onClose }: { level: Level; onClose: () =
   const [difficulty, setDifficulty] = useState<Difficulty>(level.difficulty)
   const [gdId, setGdId] = useState(level.gdLevelId ?? '')
   const [notes, setNotes] = useState(level.notes ?? '')
+  const [attempts, setAttempts] = useState(level.attempts === undefined ? '' : String(level.attempts))
   const [goal, setGoal] = useState(level.goal ?? '')
   const [targetDate, setTargetDate] = useState(level.targetDate ?? '')
   const [thumbnail, setThumbnail] = useState<Thumbnail | undefined>(level.thumbnail)
@@ -69,12 +70,15 @@ export function EditLevelModal({ level, onClose }: { level: Level; onClose: () =
     if (gdId.trim() && !/^\d+$/.test(gdId.trim())) return setError('Level IDs are numbers only.')
     if (thumbnail?.kind === 'image' && !thumbnail.dataUrl) return setError('Pick an image, or choose "None".')
     const idChanged = gdId.trim() !== (level.gdLevelId ?? '')
+    const att = attempts.replace(/[,\s]/g, '')
+    if (att && !/^\d+$/.test(att)) return setError('Attempts should be a whole number.')
     await db.levels.update(level.id, {
       name: name.trim(),
       creator: creator.trim() || 'Unknown',
       difficulty,
       gdLevelId: gdId.trim() || undefined,
       notes: notes.trim() || undefined,
+      attempts: att ? Number(att) : undefined,
       goal: goal.trim() || undefined,
       targetDate: targetDate || undefined,
       thumbnail,
@@ -106,10 +110,16 @@ export function EditLevelModal({ level, onClose }: { level: Level; onClose: () =
             </select>
           </label>
         </div>
-        <label className="field">
-          <span className="field-label">Level ID</span>
-          <input inputMode="numeric" value={gdId} onChange={(e) => setGdId(e.target.value)} />
-        </label>
+        <div className="row two">
+          <label className="field">
+            <span className="field-label">Level ID</span>
+            <input inputMode="numeric" value={gdId} onChange={(e) => setGdId(e.target.value)} />
+          </label>
+          <label className="field">
+            <span className="field-label">Attempts (optional)</span>
+            <input inputMode="numeric" value={attempts} onChange={(e) => setAttempts(e.target.value)} placeholder="e.g. 12,345" />
+          </label>
+        </div>
         <label className="field">
           <span className="field-label">Notes</span>
           <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Hard parts, settings, goals…" />

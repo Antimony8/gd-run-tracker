@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react'
 import { Modal } from './Modal'
 import { db } from '../db'
 import type { VideoRef } from '../types'
-import { linkLabel, youtubeId } from '../lib/video'
+import { linkLabel, playsInApp, tweetId, youtubeId } from '../lib/video'
 import { downloadFromDrive, driveCacheId, driveEnabled, ensureDriveAccess, hasDriveAccess, preloadDrive } from '../lib/googleDrive'
 
 /** A button that plays an attached video: uploads, Drive videos and YouTube links in a modal, other links in a new tab. */
 export function VideoButton({ video, title }: { video: VideoRef; title: string }) {
   const [open, setOpen] = useState(false)
 
-  if (video.kind === 'link' && !youtubeId(video.url)) {
+  if (video.kind === 'link' && !playsInApp(video.url)) {
     return (
       <a className="chip" href={video.url} target="_blank" rel="noreferrer">
         ▶ {linkLabel(video.url)}
@@ -27,7 +27,7 @@ export function VideoButton({ video, title }: { video: VideoRef; title: string }
           setOpen(true)
         }}
       >
-        ▶ {video.kind === 'link' ? 'YouTube' : 'Video'}
+        ▶ {video.kind === 'link' ? linkLabel(video.url) : 'Video'}
       </button>
       {open && <VideoModal video={video} title={title} onClose={() => setOpen(false)} />}
     </>
@@ -41,6 +41,8 @@ function VideoModal({ video, title, onClose }: { video: VideoRef; title: string;
         <UploadedVideo videoId={video.videoId} />
       ) : video.kind === 'drive' ? (
         <DriveVideo fileId={video.fileId} name={video.name} />
+      ) : tweetId(video.url) ? (
+        <TweetVideo id={tweetId(video.url)!} url={video.url} title={title} />
       ) : (
         <div className="video-frame">
           <iframe
@@ -52,6 +54,23 @@ function VideoModal({ video, title, onClose }: { video: VideoRef; title: string;
         </div>
       )}
     </Modal>
+  )
+}
+
+/** A Twitter/X post shown with X's own embedded player, plus a link out in case it won't load. */
+function TweetVideo({ id, url, title }: { id: string; url: string; title: string }) {
+  return (
+    <div className="tweet-embed">
+      <iframe
+        src={`https://platform.twitter.com/embed/Tweet.html?id=${id}&theme=dark&dnt=true`}
+        title={title}
+        allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+        allowFullScreen
+      />
+      <a className="text-link" href={url} target="_blank" rel="noreferrer">
+        Open on X ↗
+      </a>
+    </div>
   )
 }
 

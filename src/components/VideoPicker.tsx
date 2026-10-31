@@ -117,7 +117,7 @@ export function VideoPicker({ value, onChange, existing }: Props) {
       {value.mode === 'link' && (
         <input
           type="url"
-          placeholder="https://youtu.be/… or https://medal.tv/…"
+          placeholder="YouTube, X/Twitter or Medal link"
           value={value.url}
           onChange={(e) => onChange({ mode: 'link', url: e.target.value })}
         />

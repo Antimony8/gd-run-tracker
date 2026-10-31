@@ -8,6 +8,8 @@ export interface SettingValues {
   lastBackupAt: number
   /** ms timestamp before which the backup reminder stays hidden. */
   backupSnoozeUntil: number
+  /** Whether the Next Up section on the levels page is expanded. */
+  nextUpOpen: boolean
 }
 
 export type SettingKey = keyof SettingValues

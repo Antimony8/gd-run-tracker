@@ -584,14 +584,16 @@ textarea {
   flex-wrap: wrap;
   gap: 16px;
 }
+/* The logo is an SVG (src/assets/logo.svg) styled after the Geometry Dash title. */
 .logo {
-  font-size: clamp(36px, 7vw, 56px);
-  color: var(--gold);
-  line-height: 1;
+  margin: 0;
+  line-height: 0;
   transform: rotate(-2deg);
 }
-.logo span {
-  color: #fff;
+.logo img {
+  height: clamp(46px, 9vw, 74px);
+  width: auto;
+  max-width: 100%;
 }
 .top-actions {
   display: flex;
@@ -617,6 +619,29 @@ textarea {
 }
 .section-title {
   font-size: 28px;
+}
+.section-toggle {
+  all: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.section-toggle:disabled {
+  cursor: default;
+}
+.section-toggle:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+.toggle-arrow {
+  display: inline-block;
+  font-size: 0.6em;
+  transition: transform 0.2s var(--bounce);
+}
+.toggle-arrow.open {
+  transform: rotate(90deg);
 }
 .count {
   display: inline-block;

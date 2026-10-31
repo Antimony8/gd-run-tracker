@@ -3,6 +3,7 @@ import { useObservable } from 'dexie-react-hooks'
 import { db } from '../db'
 import { DEXIE_CLOUD_URL } from '../syncConfig'
 import type { SyncState } from 'dexie-cloud-addon'
+import { driveEnabled } from '../lib/googleDrive'
 
 function describe(state: SyncState | undefined): { text: string; tone: 'good' | 'warn' | '' } {
   if (!state) return { text: 'Starting…', tone: '' }
@@ -79,7 +80,11 @@ export function SyncCard() {
               Sign out
             </button>
           </div>
-          <p className="hint">Uploaded video files stay on the device you added them on. Video links sync.</p>
+          <p className="hint">
+            {driveEnabled
+              ? 'Videos sync when you tick "Save to my Google Drive" while adding them. Video links always sync.'
+              : 'Uploaded video files stay on the device you added them on. Video links sync.'}
+          </p>
         </>
       ) : (
         <>

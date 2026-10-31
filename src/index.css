@@ -1168,6 +1168,9 @@ textarea {
   align-items: center;
   gap: 10px;
 }
+.tweet-embed .video-frame {
+  width: 100%;
+}
 .tweet-embed iframe {
   width: min(100%, 550px);
   height: min(72vh, 680px);

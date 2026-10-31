@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { linkLabel, playsInApp, tweetId, youtubeId } from './video'
+import { linkLabel, playsInApp, tweetId, tweetVideoUrls, youtubeId } from './video'
 
 describe('tweetId', () => {
   it('reads twitter.com, x.com and mirror links', () => {
@@ -25,5 +25,42 @@ describe('links', () => {
     expect(youtubeId('https://www.youtube.com/watch?v=dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ')
     expect(playsInApp('https://x.com/a/status/1')).toBe(true)
     expect(playsInApp('https://medal.tv/clips/abc')).toBe(false)
+  })
+})
+
+describe('tweetVideoUrls', () => {
+  it('reads v1 replies', () => {
+    expect(
+      tweetVideoUrls({ code: 200, tweet: { media: { videos: [{ url: 'https://video.twimg.com/a.mp4', type: 'video' }] } } }),
+    ).toEqual(['https://video.twimg.com/a.mp4'])
+  })
+
+  it('reads v2 variants, best quality first, skipping playlists', () => {
+    const reply = {
+      status: {
+        media: {
+          videos: [
+            {
+              url: 'https://video.twimg.com/mid.mp4',
+              variants: [
+                { url: 'https://video.twimg.com/pl.m3u8', content_type: 'application/x-mpegURL' },
+                { url: 'https://video.twimg.com/low.mp4', bitrate: 632000, content_type: 'video/mp4' },
+                { url: 'https://video.twimg.com/high.mp4', bitrate: 2176000, content_type: 'video/mp4' },
+              ],
+            },
+          ],
+        },
+      },
+    }
+    expect(tweetVideoUrls(reply)).toEqual([
+      'https://video.twimg.com/high.mp4',
+      'https://video.twimg.com/low.mp4',
+      'https://video.twimg.com/mid.mp4',
+    ])
+  })
+
+  it('returns nothing for posts without video', () => {
+    expect(tweetVideoUrls({ tweet: { media: { photos: [{}] } } })).toEqual([])
+    expect(tweetVideoUrls(null)).toEqual([])
   })
 })

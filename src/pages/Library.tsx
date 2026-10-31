@@ -22,6 +22,8 @@ interface Entry {
   reach: number
   totalRuns: number
   lastActivity: number
+  /** Your hardest completion, which gets a gold frame. */
+  hardest: boolean
 }
 
 export function Library() {
@@ -38,6 +40,7 @@ export function Library() {
     if (!levels || !runs) return null
     const byLevel = new Map<string, Run[]>()
     for (const r of runs) byLevel.set(r.levelId, [...(byLevel.get(r.levelId) ?? []), r])
+    const hardestId = levels.filter((l) => l.beaten).sort(compareHardest)[0]?.id
     return levels.map((level): Entry => {
       const lr = byLevel.get(level.id) ?? []
       const calc = calculateRuns(lr)
@@ -47,6 +50,7 @@ export function Library() {
         reach: calc.reach,
         totalRuns: lr.length,
         lastActivity: Math.max(Date.parse(level.dateAdded), ...lr.map((r) => r.createdAt)),
+        hardest: level.id === hardestId,
       }
     })
   }, [levels, runs])
@@ -202,14 +206,14 @@ function QueueSection({ entries, searching }: { entries: Entry[]; searching: boo
 }
 
 function LevelCard({ entry }: { entry: Entry }) {
-  const { level, runCount, reach, totalRuns } = entry
+  const { level, runCount, reach, totalRuns, hardest } = entry
   const rank = listRank(level.listRanks)
   const tier = demonTier(level)
   const days = !level.beaten && level.targetDate ? daysUntil(level.targetDate) : null
   const thumb = useThumbBackground(level)
   return (
     <a
-      className={`level-card panel ${level.beaten ? 'beaten' : ''} ${thumb.className}`}
+      className={`level-card panel ${level.beaten ? 'beaten' : ''} ${hardest ? 'hardest' : ''} ${level.attempts !== undefined ? 'has-attempts' : ''} ${thumb.className}`}
       href={href.level(level.id)}
       style={thumb.style}
     >
@@ -218,6 +222,7 @@ function LevelCard({ entry }: { entry: Entry }) {
         <h3 className="outlined">{level.name}</h3>
         <p className="muted">by {level.creator}</p>
         <div className="badge-row">
+          {hardest && <span className="chip hardest-chip">★ Hardest</span>}
           <DifficultyBadge difficulty={level.difficulty} tier={tier} />
           {rank !== null && <span className="chip rank-chip">#{rank}</span>}
           {days !== null && (
@@ -245,6 +250,11 @@ function LevelCard({ entry }: { entry: Entry }) {
           </>
         )}
       </div>
+      {level.attempts !== undefined && (
+        <span className="card-attempts" title="Attempts">
+          {level.attempts.toLocaleString()} {level.attempts === 1 ? 'attempt' : 'attempts'}
+        </span>
+      )}
       <div className="mini-bar">
         <div style={{ width: `${level.beaten ? 100 : reach}%` }} />
       </div>

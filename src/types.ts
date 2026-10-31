@@ -31,6 +31,8 @@ export interface Level {
   beatenDate?: string // YYYY-MM-DD
   completionVideo?: VideoRef
   notes?: string
+  /** Total attempts, if you track them. */
+  attempts?: number
   /** Position in the "Next Up" queue (lower comes first). Unset = not queued. */
   queuePos?: number
   /** Free-text goal, e.g. "Get it in 3 runs". */

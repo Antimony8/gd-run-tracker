@@ -27,6 +27,7 @@ export interface ImportRow {
   beatenDate?: string
   goal?: string
   targetDate?: string
+  attempts?: number
   runs: { start: number; end: number }[]
   notes: string[]
 }
@@ -44,6 +45,7 @@ type Field =
   | 'runs'
   | 'goal'
   | 'targetDate'
+  | 'attempts'
   | 'notes'
 
 // Header text -> field. First match wins; anything unmatched is kept as a "Header: value" note.
@@ -60,6 +62,7 @@ const HEADERS: [Field, RegExp][] = [
   ['runs', /^(best )?runs$|start ?pos|^runs?$/i],
   ['goal', /^goal$/i],
   ['targetDate', /target|deadline/i],
+  ['attempts', /^(total )?(attempts|atts?)$/i],
   ['notes', /notes?|comments?|focus|why/i],
 ]
 
@@ -110,7 +113,7 @@ function toDifficulty(v: CellValue): Difficulty | undefined {
 // Statuses that the import choice already says everything about, so they don't need a note.
 const PLAIN_STATUS = /^(completed?|beaten|done|playing|in progress|next up)$/i
 
-/** "Attempts: 33,418", "Best Before Completion: 94%" */
+/** "Playtime: 3 months", "Best Before Completion: 94%" */
 function noteFor(label: string, v: CellValue): string {
   let value = typeof v === 'number' ? v.toLocaleString() : text(v)
   if (typeof v === 'number' && /best|%|percent/i.test(label) && v <= 100) value += '%'
@@ -191,6 +194,9 @@ export function parseSheets(sheets: Sheet[]): ImportRow[] {
           case 'targetDate':
             row.targetDate = toISODate(v)
             break
+          case 'attempts':
+            row.attempts = toNumber(v)
+            break
           case 'notes':
             row.notes.push(text(v))
             break
@@ -269,6 +275,7 @@ export async function applyImport(plans: ImportPlan[], defaultDifficulty: Diffic
           listRanks: ranks ? { ...existing.listRanks, ...ranks } : existing.listRanks,
           notes: [existing.notes, extraNotes].filter(Boolean).join('\n') || undefined,
           goal: existing.goal ?? row.goal,
+          attempts: row.attempts ?? existing.attempts,
           targetDate: existing.targetDate ?? row.targetDate,
           ...(beaten && !existing.beaten ? { beaten: true, beatenDate: row.beatenDate, queuePos: undefined } : {}),
           ...(row.as === 'nextup' && existing.queuePos === undefined && !existing.beaten ? { queuePos: nextQueuePos++ } : {}),
@@ -289,6 +296,7 @@ export async function applyImport(plans: ImportPlan[], defaultDifficulty: Diffic
           notes: notes || undefined,
           goal: row.goal,
           targetDate: row.targetDate,
+          attempts: row.attempts,
           listRanks: ranks,
           queuePos: row.as === 'nextup' ? nextQueuePos++ : undefined,
         })

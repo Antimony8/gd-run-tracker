@@ -82,6 +82,7 @@ export function LevelPage({ id }: { id: string }) {
           <p className="muted">
             by {level.creator}
             {level.gdLevelId && <> · ID {level.gdLevelId}</>}
+            {level.attempts !== undefined && <> · {level.attempts.toLocaleString()} attempts</>}
           </p>
           <div className="badge-row">
             <DifficultyBadge difficulty={level.difficulty} tier={tier} />

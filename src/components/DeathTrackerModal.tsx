@@ -1,22 +1,38 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Modal } from './Modal'
-import { applyDeathTrackerImport, completedFromZero, runsToImport, type DTAction, type DTPlan } from '../lib/deathTracker'
+import { applyDeathTrackerImport, completedFromZero, runsToImport, type DTPlan, type DTTarget } from '../lib/deathTracker'
 import { runLabel } from '../lib/format'
 import { showToast } from '../lib/toast'
 import { href, navigate } from '../router'
+import type { Level } from '../types'
 
-const ACTION_LABELS: Record<DTAction, string> = { update: 'Update', add: 'Add as new level', skip: "Don't import" }
+const REASONS = { id: 'same level ID', linked: 'linked before', name: 'name matches' } as const
 
-/** Preview of a Death Tracker import: matched levels update, others can be added. */
-export function DeathTrackerModal({ plans: initial, onClose }: { plans: DTPlan[]; onClose: () => void }) {
+interface Props {
+  plans: DTPlan[]
+  levels: Level[]
+  onClose: () => void
+}
+
+/**
+ * Preview of a Death Tracker import. Every mod level can feed any tracker level, so a level's
+ * online version and its editor copies (start-pos copies and so on) can be combined into one.
+ */
+export function DeathTrackerModal({ plans: initial, levels, onClose }: Props) {
   const [plans, setPlans] = useState(initial)
+  const [showAll, setShowAll] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const chosen = plans.filter((p) => p.action !== 'skip')
-  const unmatched = plans.filter((p) => !p.existing)
 
-  const setAction = (key: string, action: DTAction) =>
-    setPlans((ps) => ps.map((p) => (p.dt.key === key ? { ...p, action } : p)))
+  const sortedLevels = useMemo(() => [...levels].sort((a, b) => a.name.localeCompare(b.name)), [levels])
+  const nameOf = (id: string) => levels.find((l) => l.id === id)?.name ?? 'level'
+  const chosen = plans.filter((p) => p.target !== 'skip')
+  const suggested = plans.filter((p) => p.suggested)
+  const others = plans.filter((p) => !p.suggested)
+  const visible = showAll ? plans : suggested
+
+  const setTarget = (key: string, target: DTTarget) =>
+    setPlans((ps) => ps.map((p) => (p.dt.key === key ? { ...p, target } : p)))
 
   const save = async () => {
     setBusy(true)
@@ -39,32 +55,21 @@ export function DeathTrackerModal({ plans: initial, onClose }: { plans: DTPlan[]
     <Modal title="Import from Death Tracker" onClose={onClose} wide>
       <div className="form">
         <p>
-          Found <strong>{plans.length}</strong> levels. <strong>{plans.length - unmatched.length}</strong> match levels in your
-          tracker and will be updated.{' '}
-          {unmatched.length > 0 && (
-            <>
-              The other {unmatched.length} aren't in your tracker;{' '}
-              <button
-                type="button"
-                className="link-btn"
-                onClick={() => setPlans((ps) => ps.map((p) => (p.existing ? p : { ...p, action: 'add' })))}
-              >
-                add them all
-              </button>{' '}
-              or pick some below.
-            </>
-          )}
+          Found <strong>{plans.length}</strong> levels in Death Tracker. <strong>{suggested.length}</strong> look like levels in your
+          tracker, including editor copies with matching names (like "Bloodbath start pos"). Choose where each one's deaths,
+          attempts and runs should go; several can add to the same level.
         </p>
+
         <ul className="import-list">
-          {plans.map(({ dt, existing, action }) => {
+          {visible.map(({ dt, suggested: s, target }) => {
             const runs = runsToImport(dt)
             return (
-              <li key={dt.key} className={`import-row ${action === 'skip' ? 'skipped' : ''}`}>
+              <li key={dt.key} className={`import-row ${target === 'skip' ? 'skipped' : ''}`}>
                 <div className="import-name">
-                  <strong>{existing?.name ?? dt.name}</strong>
+                  <strong>{dt.name}</strong>
                   <span className="muted">
-                    {dt.gdLevelId ? `ID ${dt.gdLevelId}` : dt.key}
-                    {existing && <span className="chip import-existing">In your tracker</span>}
+                    {dt.editor ? 'Editor level' : dt.gdLevelId ? `ID ${dt.gdLevelId}` : dt.key}
+                    {dt.editor && <span className="chip import-existing">Copy</span>}
                     {completedFromZero(dt.deaths) && <span className="chip import-existing">Beaten</span>}
                   </span>
                 </div>
@@ -75,21 +80,37 @@ export function DeathTrackerModal({ plans: initial, onClose }: { plans: DTPlan[]
                       {runs.length} run{runs.length === 1 ? '' : 's'}
                     </span>
                   )}
+                  {s && (
+                    <span>
+                      → {nameOf(s.levelId)} ({REASONS[s.reason]})
+                    </span>
+                  )}
                 </div>
-                <select value={action} onChange={(e) => setAction(dt.key, e.target.value as DTAction)} aria-label={`Import ${dt.name} as`}>
-                  {(existing ? (['update', 'skip'] as const) : (['add', 'skip'] as const)).map((a) => (
-                    <option key={a} value={a}>
-                      {ACTION_LABELS[a]}
-                    </option>
-                  ))}
+                <select value={target} onChange={(e) => setTarget(dt.key, e.target.value)} aria-label={`Where ${dt.name} goes`}>
+                  <option value="skip">Don't import</option>
+                  <option value="new">New level</option>
+                  <optgroup label="Add to…">
+                    {sortedLevels.map((l) => (
+                      <option key={l.id} value={l.id}>
+                        {l.id === s?.levelId ? '★ ' : ''}
+                        {l.name}
+                      </option>
+                    ))}
+                  </optgroup>
                 </select>
               </li>
             )
           })}
         </ul>
+        {others.length > 0 && (
+          <button type="button" className="link-btn" onClick={() => setShowAll((v) => !v)}>
+            {showAll ? 'Hide' : 'Show'} {others.length} other Death Tracker level{others.length === 1 ? '' : 's'}
+          </button>
+        )}
+
         <p className="hint">
-          Imports attempts (never lowering yours), deaths by percent, playtime, your best from 0 and the start-pos runs that
-          aren't covered by a longer one. Levels beaten from 0 are marked beaten. Nothing is deleted.
+          Combines deaths, attempts (never lowering yours), playtime and runs from every source you link to a level. Re-importing
+          replaces each source's numbers instead of adding them twice, and remembers your links. Nothing is deleted.
         </p>
         {error && <p className="hint warn">{error}</p>}
         <div className="modal-actions">
@@ -97,7 +118,7 @@ export function DeathTrackerModal({ plans: initial, onClose }: { plans: DTPlan[]
             Cancel
           </button>
           <button type="button" className="gd-btn green" onClick={save} disabled={busy || chosen.length === 0}>
-            {busy ? 'Importing…' : `Import ${chosen.length} level${chosen.length === 1 ? '' : 's'}`}
+            {busy ? 'Importing…' : `Import ${chosen.length} source${chosen.length === 1 ? '' : 's'}`}
           </button>
         </div>
       </div>

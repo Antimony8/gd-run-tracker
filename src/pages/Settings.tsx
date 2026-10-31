@@ -33,7 +33,7 @@ export function Settings() {
   const theme = useSetting('theme')
   const lastBackup = useSetting('lastBackupAt')
   const install = useInstallPrompt()
-  const [dtPlans, setDtPlans] = useState<DTPlan[] | null>(null)
+  const [dtImport, setDtImport] = useState<{ plans: DTPlan[]; levels: Level[] } | null>(null)
   const [sheetImport, setSheetImport] = useState<{ fileName: string; rows: ImportRow[]; levels: Level[] } | null>(null)
 
   const refresh = async () => {
@@ -115,7 +115,8 @@ export function Settings() {
         })
         return
       }
-      setDtPlans(planDeathTrackerImport(found, await db.levels.toArray()))
+      const levels = await db.levels.toArray()
+      setDtImport({ plans: planDeathTrackerImport(found, levels), levels })
     } catch {
       setMessage({ type: 'warn', text: "That folder couldn't be read." })
     } finally {
@@ -325,7 +326,7 @@ export function Settings() {
           Delete all data
         </button>
       </section>
-      {dtPlans && <DeathTrackerModal plans={dtPlans} onClose={() => setDtPlans(null)} />}
+      {dtImport && <DeathTrackerModal {...dtImport} onClose={() => setDtImport(null)} />}
       {sheetImport && <ImportModal {...sheetImport} onClose={() => setSheetImport(null)} />}
     </div>
   )

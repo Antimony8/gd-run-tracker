@@ -8,6 +8,9 @@ import {
   readDeathTrackerFolder,
   runsToImport,
   topDeaths,
+  baseName,
+  combineSources,
+  levelRuns,
 } from './deathTracker'
 import type { Level } from '../types'
 
@@ -86,19 +89,68 @@ describe('readDeathTrackerFolder', () => {
 })
 
 describe('planDeathTrackerImport', () => {
-  it('matches by level ID, then by name for levels without one', () => {
-    const levels = [
-      { id: 'a', name: 'Yata', gdLevelId: '6508283' },
-      { id: 'b', name: 'Stereo Madness' },
-    ] as Level[]
+  const levels = [
+    { id: 'yata', name: 'Yatagarasu', gdLevelId: '6508283' },
+    { id: 'bb', name: 'Bloodbath' },
+    { id: 'sm', name: 'Stereo Madness' },
+    { id: 'linked', name: 'Tartarus', deathStats: { sources: { '777-editor': {} }, importedAt: 0 } },
+  ] as unknown as Level[]
+  const dt = (key: string, name: string) => parseDTLevel(key, { levelName: name, attempts: 5 }, {})!
+
+  it('matches by ID, earlier links and names, including editor copies', () => {
     const plans = planDeathTrackerImport(
-      [parseDTLevel('6508283', metadata, general)!, parseDTLevel('1-local', { levelName: 'Stereo Madness', attempts: 3 }, {})!, parseDTLevel('999', { levelName: 'Other', attempts: 5 }, {})!],
+      [
+        parseDTLevel('6508283', metadata, general)!,
+        dt('101-editor', 'bloodbath start pos'),
+        dt('102-editor', 'Bloodbath Copy 2'),
+        dt('103-editor', 'BLOODBATH (SP)'),
+        dt('1-local', 'Stereo Madness'),
+        dt('777-editor', 'tart practice'),
+        dt('999', 'Something Else'),
+      ],
       levels,
     )
-    expect(plans.map((p) => [p.dt.key, p.existing?.id, p.action])).toEqual([
-      ['6508283', 'a', 'update'],
-      ['1-local', 'b', 'update'],
-      ['999', undefined, 'skip'],
-    ])
+    const byKey = Object.fromEntries(plans.map((p) => [p.dt.key, [p.suggested?.levelId, p.suggested?.reason, p.target]]))
+    expect(byKey).toEqual({
+      '6508283': ['yata', 'id', 'yata'],
+      '101-editor': ['bb', 'name', 'bb'],
+      '102-editor': ['bb', 'name', 'bb'],
+      '103-editor': ['bb', 'name', 'bb'],
+      '1-local': ['sm', 'name', 'sm'],
+      '777-editor': ['linked', 'linked', 'linked'],
+      '999': [undefined, undefined, 'skip'],
+    })
+  })
+
+  it('strips copy words from names', () => {
+    expect(baseName('Bloodbath Start Pos')).toBe('bloodbath')
+    expect(baseName('bloodbath startpos copy 3')).toBe('bloodbath')
+    expect(baseName('Sonic Wave (verify)')).toBe('sonicwave')
+    expect(baseName('Acu')).toBe('acu')
+  })
+})
+
+describe('combineSources', () => {
+  it('adds a level and its copies together', () => {
+    const total = combineSources({
+      importedAt: 0,
+      sources: {
+        a: { name: 'Bloodbath', editor: false, deaths: { '50': 3, '100': 1 }, attempts: 100, playtimeMs: 10, sessions: 2 },
+        b: { name: 'bloodbath sp', editor: true, deaths: { '50': 2, '60': 1 }, attempts: 40, playtimeMs: 5, sessions: 1 },
+      },
+    })
+    expect(total).toEqual({ deaths: { '50': 5, '60': 1, '100': 1 }, attempts: 140, playtimeMs: 15, sessions: 3 })
+  })
+})
+
+describe('levelRuns', () => {
+  it('keeps the combined best from 0 and drops copies runs it covers', () => {
+    const online = parseDTLevel('1', { levelName: 'Bloodbath', attempts: 1 }, { deaths: { '94': 1, '20': 5 } })!
+    const sp = parseDTLevel('2-editor', { levelName: 'bloodbath sp', attempts: 1 }, { deaths: { '45': 3 }, runs: { '40-80': 1, '75-100': 2, '45-60': 9 } })!
+    const copy = parseDTLevel('3-editor', { levelName: 'bloodbath copy', attempts: 1 }, { deaths: { '60': 1 }, runs: { '10-50': 1 } })!
+    const total = combineSources({ importedAt: 0, sources: { a: { ...online }, b: { ...sp }, c: { ...copy } } })
+    const runs = levelRuns([online, sp, copy], total.deaths).map(({ run, from }) => `${run.start}-${run.end}@${from.name}`)
+    // 40-80 and 10-50 sit inside 0-94, and 45-60 inside 40-80.
+    expect(runs).toEqual(['0-94@Bloodbath', '75-100@bloodbath sp'])
   })
 })

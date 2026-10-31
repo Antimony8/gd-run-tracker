@@ -48,14 +48,22 @@ export interface Level {
   deathStats?: DeathStats
 }
 
-/** What the Death Tracker mod recorded for a level. */
-export interface DeathStats {
+/** What the Death Tracker mod recorded for one of its levels (an online level or an editor copy). */
+export interface DeathSource {
+  name: string
+  /** True for levels saved in the editor, like a start-pos copy. */
+  editor: boolean
   /** Deaths from 0 at each percent ("100" counts completions). */
   deaths: Record<string, number>
   /** GD's own attempt counter, as saved by the mod. */
   attempts: number
   playtimeMs: number
   sessions: number
+}
+
+/** Death Tracker data for a level, keyed by the mod's level key so each source can be re-imported on its own. */
+export interface DeathStats {
+  sources: Record<string, DeathSource>
   importedAt: number
 }
 

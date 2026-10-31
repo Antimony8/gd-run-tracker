@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { DeathStats } from '../types'
-import { bestFromZero, completedFromZero, topDeaths } from '../lib/deathTracker'
+import { bestFromZero, combineSources, completedFromZero, topDeaths } from '../lib/deathTracker'
 
 const PERCENTS = Array.from({ length: 100 }, (_, i) => i)
 
@@ -11,8 +11,11 @@ function formatPlaytime(ms: number): string {
 }
 
 /** "Where you die" panel: deaths from 0 at each percent, from the Death Tracker mod. */
-export function DeathChart({ stats }: { stats: DeathStats }) {
+export function DeathChart({ stats: all }: { stats: DeathStats }) {
   const [hover, setHover] = useState<number | null>(null)
+  // The online level and any editor copies, added together.
+  const stats = combineSources(all)
+  const sources = Object.values(all.sources)
   const max = Math.max(1, ...PERCENTS.map((p) => stats.deaths[p] ?? 0))
   const total = PERCENTS.reduce((sum, p) => sum + (stats.deaths[p] ?? 0), 0)
   const top = topDeaths(stats.deaths)
@@ -88,7 +91,14 @@ export function DeathChart({ stats }: { stats: DeathStats }) {
       ) : (
         <p className="muted">No deaths from 0 recorded yet.</p>
       )}
-      <p className="hint">Updated {new Date(stats.importedAt).toLocaleDateString()}. Re-import in Settings to refresh.</p>
+      <p className="hint">
+        {sources.length > 1
+          ? `Combined from ${sources.map((s) => (s.editor ? `${s.name} (editor copy)` : s.name)).join(', ')}. `
+          : sources[0]?.editor
+            ? `From your editor copy "${sources[0].name}". `
+            : ''}
+        Updated {new Date(all.importedAt).toLocaleDateString()}. Re-import in Settings to refresh.
+      </p>
     </section>
   )
 }

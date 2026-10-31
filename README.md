@@ -6,7 +6,7 @@ Everything is stored in your browser. There are no accounts and no server.
 
 ## Features
 
-- **Level library** with In Progress, Completed and a collapsible Next Up section, search, and sorting (including by demon list rank). Your hardest completion gets a shiny gold frame, and cards show your attempt count when you've logged one.
+- **Level library** with In Progress, Completed and a collapsible Next Up section, search, and sorting (including by demon list rank). Completed levels have their own sort (hardest/easiest by AREDL, recently beaten, attempts, name or random). Your hardest completion gets a shiny gold frame, and cards show your attempt count when you've logged one.
 - **Next Up queue**: line up the levels you'll play next and reorder them.
 - **Goals**: give a level a goal ("Get it in 3 runs") and a target date with a countdown.
 - **Add levels by ID**: details auto-fill from [GDBrowser](https://gdbrowser.com), falling back to GDBrowser search, [GDHistory](https://history.geometrydash.eu), and the demon lists if a service is down. You can always enter them by hand.

@@ -43,19 +43,19 @@ describe('parseSheets', () => {
   })
 
   it('marks levels on a completions sheet as completed', () => {
-    expect(rows[0]).toMatchObject({ as: 'completed', aredl: 795 })
-    expect(rows[0].notes).toEqual(['Attempts: 15,270', 'Best Before Completion: 94%', 'Playtime: 3 months', 'Learned ship here'])
+    expect(rows[0]).toMatchObject({ as: 'completed', aredl: 795, attempts: 15270 })
+    expect(rows[0].notes).toEqual(['Best Before Completion: 94%', 'Playtime: 3 months', 'Learned ship here'])
     expect(rows[1].notes).toContain('Best Before Completion: 96x2')
   })
 
   it('uses the status column and turns best runs into runs', () => {
-    expect(rows[2]).toMatchObject({ as: 'progress', aredl: 392 })
+    expect(rows[2]).toMatchObject({ as: 'progress', aredl: 392, attempts: 22000 })
     expect(rows[2].runs).toEqual([
       { start: 0, end: 43 },
       { start: 21, end: 77 },
       { start: 53, end: 100 },
     ])
-    expect(rows[2].notes).toEqual(['EDEL: 57.6', 'Attempts: 22,000', 'Wave practice'])
+    expect(rows[2].notes).toEqual(['EDEL: 57.6', 'Wave practice'])
     expect(rows[3].as).toBe('nextup')
     expect(rows[4]).toMatchObject({ as: 'nextup', status: 'Considering' })
     expect(rows[4].notes[0]).toBe('Status: Considering')

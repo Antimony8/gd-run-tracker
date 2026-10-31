@@ -1,5 +1,17 @@
 import type { CSSProperties } from 'react'
 import type { Difficulty } from '../types'
+import { type DemonTier, type DemonTierId, tierRange } from '../lib/demonTier'
+import grandpa from '../assets/demons/grandpa.png'
+import infinite from '../assets/demons/infinite.png'
+import mythical from '../assets/demons/mythical.png'
+import legendary from '../assets/demons/legendary.png'
+import ultimate from '../assets/demons/ultimate.png'
+import supreme from '../assets/demons/supreme.png'
+import easyDemon from '../assets/demons/easy.png'
+import mediumDemon from '../assets/demons/medium.png'
+import hardDemon from '../assets/demons/hard.png'
+import insaneDemon from '../assets/demons/insane.png'
+import extremeDemon from '../assets/demons/extreme.png'
 
 export const DIFFICULTY_COLORS: Record<Difficulty, string> = {
   Unrated: '#9aa3b5',
@@ -14,6 +26,18 @@ export const DIFFICULTY_COLORS: Record<Difficulty, string> = {
   'Hard Demon': '#ef4444',
   'Insane Demon': '#d946ef',
   'Extreme Demon': '#b91c1c',
+}
+
+// Demon faces from the Grandpa Demon mod's sprite sheet.
+const TIER_FACES: Record<DemonTierId, string> = { grandpa, infinite, mythical, legendary, ultimate, supreme }
+
+// The game's own demon faces.
+const DEMON_FACES: Partial<Record<Difficulty, string>> = {
+  'Easy Demon': easyDemon,
+  'Medium Demon': mediumDemon,
+  'Hard Demon': hardDemon,
+  'Insane Demon': insaneDemon,
+  'Extreme Demon': extremeDemon,
 }
 
 const SHORT: Record<Difficulty, string> = {
@@ -31,13 +55,26 @@ const SHORT: Record<Difficulty, string> = {
   'Extreme Demon': 'XD',
 }
 
-export const isDemon = (d: Difficulty) => d.endsWith('Demon')
+interface Props {
+  difficulty: Difficulty
+  /** Grandpa Demon tier, shown instead of the plain difficulty when set. */
+  tier?: DemonTier | null
+}
 
-/** Round "difficulty orb" — demons get little horns. */
-export function DifficultyOrb({ difficulty, size = 56 }: { difficulty: Difficulty; size?: number }) {
+/** Round "difficulty orb" for non-demons; demons show their demon face, tiered extremes their tier's face. */
+export function DifficultyOrb({ difficulty, tier, size = 56 }: Props & { size?: number }) {
+  const face = tier ? TIER_FACES[tier.id] : DEMON_FACES[difficulty]
+  if (face) {
+    const name = tier?.name ?? difficulty
+    return (
+      <div className={`demon-face ${tier ? `tier-${tier.id}` : ''}`} style={{ '--size': `${size}px` } as CSSProperties} title={name}>
+        <img src={face} alt={name} draggable={false} />
+      </div>
+    )
+  }
   return (
     <div
-      className={`diff-orb ${isDemon(difficulty) ? 'demon' : ''}`}
+      className="diff-orb"
       style={{ '--diff': DIFFICULTY_COLORS[difficulty], '--size': `${size}px` } as CSSProperties}
       title={difficulty}
     >
@@ -46,10 +83,14 @@ export function DifficultyOrb({ difficulty, size = 56 }: { difficulty: Difficult
   )
 }
 
-export function DifficultyBadge({ difficulty }: { difficulty: Difficulty }) {
+export function DifficultyBadge({ difficulty, tier }: Props) {
   return (
-    <span className="diff-badge" style={{ '--diff': DIFFICULTY_COLORS[difficulty] } as CSSProperties}>
-      {difficulty}
+    <span
+      className={`diff-badge ${tier ? `tier-badge tier-${tier.id}` : ''}`}
+      style={{ '--diff': tier?.color ?? DIFFICULTY_COLORS[difficulty] } as CSSProperties}
+      title={tier ? `${tierRange(tier)} (Grandpa Demon scale)` : undefined}
+    >
+      {tier?.name ?? difficulty}
     </span>
   )
 }

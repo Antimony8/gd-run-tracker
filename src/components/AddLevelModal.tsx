@@ -5,6 +5,7 @@ import { DIFFICULTIES, type Difficulty, type Level, type ListRanks } from '../ty
 import { lookupLevel } from '../lib/levelInfo'
 import { uid } from '../lib/format'
 import { refreshListRanks } from '../lib/data'
+import { tierForRank } from '../lib/demonTier'
 import { navigate, href } from '../router'
 
 export function AddLevelModal({ onClose }: { onClose: () => void }) {
@@ -38,9 +39,10 @@ export function AddLevelModal({ onClose }: { onClose: () => void }) {
       setCreator(res.info.creator)
       setDifficulty(res.info.difficulty)
       const rank = res.ranks.aredl ?? res.ranks.pointercrate
+      const tier = tierForRank(res.ranks.aredl)
       setStatus({
         type: 'ok',
-        msg: `Found it on ${res.source}!${rank ? ` It's #${rank} on the demon list.` : ''} Check the details below.`,
+        msg: `Found it on ${res.source}!${rank ? ` It's #${rank} on the demon list${tier ? ` (${tier.name})` : ''}.` : ''} Check the details below.`,
       })
     } catch {
       setStatus({ type: 'error', msg: "Couldn't look that level up. Fill in the details yourself below." })

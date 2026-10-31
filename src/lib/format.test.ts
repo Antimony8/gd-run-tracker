@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { countdown, daysUntil, parseQuickRun, validateRun } from './format'
+import { countdown, daysUntil, parseQuickRun, runLabel, validateRun } from './format'
 import { themeVars } from './theme'
 
 describe('daysUntil', () => {
@@ -43,5 +43,14 @@ describe('themeVars', () => {
     expect(Object.keys(vars)).toContain('--bg-2')
     expect(vars['--bg-2']).toMatch(/^hsl\(0\.0 /)
     expect(themeVars('nope')).toEqual(themeVars('#123fae'))
+  })
+})
+
+describe('runLabel', () => {
+  it('shows runs from 0 as just the end percent', () => {
+    expect(runLabel(0, 31)).toBe('31%')
+    expect(runLabel(0, 100)).toBe('100%')
+    expect(runLabel(25, 75)).toBe('25–75%')
+    expect(runLabel(0.5, 40.25)).toBe('0.5–40.25%')
   })
 })

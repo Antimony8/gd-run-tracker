@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Thumbnail } from '../types'
 import { THEME_PRESETS } from '../lib/theme'
 import { imageToDataUrl } from '../lib/image'
+import { useLevelThumb } from '../lib/levelThumbnail'
 
 interface SwatchProps {
   value: string | undefined
@@ -39,9 +40,17 @@ export function ColorSwatches({ value, onChange, noneLabel }: SwatchProps) {
   )
 }
 
-export function ThumbnailPicker({ value, onChange }: { value?: Thumbnail; onChange: (t?: Thumbnail) => void }) {
+interface ThumbnailPickerProps {
+  value?: Thumbnail
+  onChange: (t?: Thumbnail) => void
+  /** The level's in-game ID, for previewing its automatic thumbnail. */
+  gdLevelId?: string
+}
+
+export function ThumbnailPicker({ value, onChange, gdLevelId }: ThumbnailPickerProps) {
   const [error, setError] = useState('')
-  const mode = value?.kind ?? 'none'
+  const mode = value?.kind ?? 'auto'
+  const auto = useLevelThumb(gdLevelId)
 
   const onFile = async (file?: File) => {
     if (!file) return
@@ -57,7 +66,10 @@ export function ThumbnailPicker({ value, onChange }: { value?: Thumbnail; onChan
     <div className="field">
       <span className="field-label">Card thumbnail</span>
       <div className="seg-tabs">
-        <button type="button" className={mode === 'none' ? 'active' : ''} onClick={() => onChange(undefined)}>
+        <button type="button" className={mode === 'auto' ? 'active' : ''} onClick={() => onChange(undefined)}>
+          Auto
+        </button>
+        <button type="button" className={mode === 'none' ? 'active' : ''} onClick={() => onChange({ kind: 'none' })}>
           None
         </button>
         <button
@@ -75,6 +87,19 @@ export function ThumbnailPicker({ value, onChange }: { value?: Thumbnail; onChan
           Image
         </button>
       </div>
+      {mode === 'auto' &&
+        (auto ? (
+          <div className="thumb-drop thumb-auto">
+            <img src={auto} alt="Level thumbnail" />
+            <p className="hint">From the Level Thumbnails mod.</p>
+          </div>
+        ) : (
+          <p className="hint">
+            {gdLevelId
+              ? "Uses the level's thumbnail from the Level Thumbnails mod. None found for this level yet (or it couldn't be reached)."
+              : 'Add the level ID above to use its thumbnail from the Level Thumbnails mod.'}
+          </p>
+        ))}
       {value?.kind === 'color' && (
         <ColorSwatches value={value.color} onChange={(c) => onChange({ kind: 'color', color: c ?? THEME_PRESETS[1].color })} />
       )}

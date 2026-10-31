@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../db'
 import type { Level, Run } from '../types'
@@ -7,6 +7,7 @@ import { countdown, daysUntil, formatDate, pct } from '../lib/format'
 import { listRank } from '../lib/levelInfo'
 import { moveInQueue, removeFromQueue } from '../lib/data'
 import { useShortcut } from '../lib/shortcuts'
+import { useThumbBackground } from '../lib/levelThumbnail'
 import { BackupReminder } from '../components/BackupReminder'
 import { DifficultyBadge, DifficultyOrb } from '../components/DifficultyBadge'
 import { compareHardest, demonTier } from '../lib/demonTier'
@@ -200,23 +201,17 @@ function QueueSection({ entries, searching }: { entries: Entry[]; searching: boo
   )
 }
 
-function thumbStyle(level: Level): CSSProperties | undefined {
-  const t = level.thumbnail
-  if (t?.kind === 'color') return { '--thumb': t.color } as CSSProperties
-  if (t?.kind === 'image' && t.dataUrl) return { '--thumb-img': `url("${t.dataUrl}")` } as CSSProperties
-  return undefined
-}
-
 function LevelCard({ entry }: { entry: Entry }) {
   const { level, runCount, reach, totalRuns } = entry
   const rank = listRank(level.listRanks)
   const tier = demonTier(level)
   const days = !level.beaten && level.targetDate ? daysUntil(level.targetDate) : null
+  const thumb = useThumbBackground(level)
   return (
     <a
-      className={`level-card panel ${level.beaten ? 'beaten' : ''} ${level.thumbnail ? `thumb-${level.thumbnail.kind}` : ''}`}
+      className={`level-card panel ${level.beaten ? 'beaten' : ''} ${thumb.className}`}
       href={href.level(level.id)}
-      style={thumbStyle(level)}
+      style={thumb.style}
     >
       <DifficultyOrb difficulty={level.difficulty} tier={tier} />
       <div className="level-card-body">

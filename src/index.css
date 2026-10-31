@@ -1225,6 +1225,14 @@ textarea {
     linear-gradient(100deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.78) 65%),
     var(--thumb-img) center / cover;
 }
+.level-header.thumb-image {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.55) 55%, rgba(0, 0, 0, 0.3) 100%),
+    var(--thumb-img) center / cover;
+}
+.level-header.thumb-color {
+  background: linear-gradient(100deg, color-mix(in srgb, var(--thumb) 85%, transparent) 0%, var(--panel) 70%);
+}
 .level-card.beaten.thumb-color,
 .level-card.beaten.thumb-image {
   box-shadow:
@@ -1283,6 +1291,11 @@ textarea {
   width: 100%;
   height: 100%;
   padding: 0;
+}
+.thumb-auto {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 .thumb-drop img {
   display: block;

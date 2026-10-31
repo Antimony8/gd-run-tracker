@@ -8,8 +8,8 @@ import { listRank } from '../lib/levelInfo'
 import { moveInQueue, removeFromQueue } from '../lib/data'
 import { useShortcut } from '../lib/shortcuts'
 import { BackupReminder } from '../components/BackupReminder'
-import { DIFFICULTIES } from '../types'
 import { DifficultyBadge, DifficultyOrb } from '../components/DifficultyBadge'
+import { compareHardest, demonTier } from '../lib/demonTier'
 import { AddLevelModal } from '../components/AddLevelModal'
 import { href } from '../router'
 
@@ -126,13 +126,10 @@ function sorter(sort: Sort) {
         // Full chains first (fewest runs), then by how far the chain reaches.
         return (a.runCount ?? 999) - (b.runCount ?? 999) || b.reach - a.reach
       case 'difficulty':
-        return DIFFICULTIES.indexOf(b.level.difficulty) - DIFFICULTIES.indexOf(a.level.difficulty)
+        return compareHardest(a.level, b.level)
       case 'list':
         // Ranked levels by position, then everything else hardest first.
-        return (
-          (listRank(a.level.listRanks) ?? Infinity) - (listRank(b.level.listRanks) ?? Infinity) ||
-          DIFFICULTIES.indexOf(b.level.difficulty) - DIFFICULTIES.indexOf(a.level.difficulty)
-        )
+        return (listRank(a.level.listRanks) ?? Infinity) - (listRank(b.level.listRanks) ?? Infinity) || compareHardest(a.level, b.level)
       case 'name':
         return a.level.name.localeCompare(b.level.name)
       default:
@@ -210,6 +207,7 @@ function thumbStyle(level: Level): CSSProperties | undefined {
 function LevelCard({ entry }: { entry: Entry }) {
   const { level, runCount, reach, totalRuns } = entry
   const rank = listRank(level.listRanks)
+  const tier = demonTier(level)
   const days = !level.beaten && level.targetDate ? daysUntil(level.targetDate) : null
   return (
     <a
@@ -217,12 +215,12 @@ function LevelCard({ entry }: { entry: Entry }) {
       href={href.level(level.id)}
       style={thumbStyle(level)}
     >
-      <DifficultyOrb difficulty={level.difficulty} />
+      <DifficultyOrb difficulty={level.difficulty} tier={tier} />
       <div className="level-card-body">
         <h3 className="outlined">{level.name}</h3>
         <p className="muted">by {level.creator}</p>
         <div className="badge-row">
-          <DifficultyBadge difficulty={level.difficulty} />
+          <DifficultyBadge difficulty={level.difficulty} tier={tier} />
           {rank !== null && <span className="chip rank-chip">#{rank}</span>}
           {days !== null && (
             <span className={`chip goal-chip ${days < 0 ? 'overdue' : ''}`} title={level.goal}>

@@ -10,6 +10,7 @@ Everything is stored in your browser. There are no accounts and no server.
 - **Next Up queue**: line up the levels you'll play next and reorder them.
 - **Goals**: give a level a goal ("Get it in 3 runs") and a target date with a countdown.
 - **Add levels by ID**: details auto-fill from [GDBrowser](https://gdbrowser.com), falling back to GDBrowser search, [GDHistory](https://history.geometrydash.eu), and the demon lists if a service is down. You can always enter them by hand.
+- **Grandpa Demon tiers**: extreme demons in the AREDL top 500 get the tiers and demon faces from the [Grandpa Demon](https://github.com/ItzKiba/GrandpaDemon) mod (Supreme, Ultimate, Legendary, Mythical, Infinite, Grandpa).
 - **Demon list ranks** from [Pointercrate](https://pointercrate.com) and the [AREDL](https://aredl.net), refreshable per level or all at once in Settings.
 - **Card thumbnails**: a color or your own image on each level card.
 - **Themes**: pick the app's background color, and give any level its own. Colors fade between pages like a GD color trigger.
@@ -91,4 +92,4 @@ sw-template.js        Offline service worker; vite.config.ts fills in the file l
 
 Runs store a `createdAt` timestamp, which leaves room for future features like a progress-over-time graph, a death heatmap, or a stats page.
 
-Geometry Dash is a game by RobTop Games. This is a fan-made tool and isn't affiliated with RobTop. All art in the app is original.
+Geometry Dash is a game by RobTop Games. This is a fan-made tool and isn't affiliated with RobTop. The demon tier faces in `src/assets/demons/` come from the [Grandpa Demon](https://github.com/ItzKiba/GrandpaDemon) mod by ItzKiba (Grandpa Demon sprite by tcoffa); all other art in the app is original.

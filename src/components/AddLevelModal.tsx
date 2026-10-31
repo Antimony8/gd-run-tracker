@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { Modal } from './Modal'
 import { db } from '../db'
-import { DIFFICULTIES, type Difficulty } from '../types'
-import { fetchLevel } from '../lib/gdbrowser'
+import { DIFFICULTIES, type Difficulty, type Level, type ListRanks } from '../types'
+import { lookupLevel } from '../lib/levelInfo'
 import { uid } from '../lib/format'
+import { refreshListRanks } from '../lib/data'
 import { navigate, href } from '../router'
 
 export function AddLevelModal({ onClose }: { onClose: () => void }) {
@@ -13,20 +14,34 @@ export function AddLevelModal({ onClose }: { onClose: () => void }) {
   const [difficulty, setDifficulty] = useState<Difficulty>('Unrated')
   const [status, setStatus] = useState<{ type: 'idle' | 'loading' | 'ok' | 'error'; msg?: string }>({ type: 'idle' })
   const [error, setError] = useState('')
+  // Ranks from the last lookup, kept only while the ID box still matches.
+  const [ranks, setRanks] = useState<{ id: string; ranks: ListRanks } | null>(null)
 
   const lookup = async () => {
     const id = gdId.trim()
     if (!/^\d+$/.test(id)) {
-      setStatus({ type: 'error', msg: 'Level IDs are numbers only.' })
+      setStatus({ type: 'error', msg: "Level IDs are numbers only. You can find it on the level's info page in-game." })
       return
     }
     setStatus({ type: 'loading' })
     try {
-      const info = await fetchLevel(id)
-      setName(info.name)
-      setCreator(info.creator)
-      setDifficulty(info.difficulty)
-      setStatus({ type: 'ok', msg: 'Found it! Check the details below.' })
+      const res = await lookupLevel(id)
+      setRanks({ id, ranks: res.ranks })
+      if (!res.info) {
+        setStatus({
+          type: 'error',
+          msg: "Couldn't find that level. The lookup services may be down, so fill in the details yourself below.",
+        })
+        return
+      }
+      setName(res.info.name)
+      setCreator(res.info.creator)
+      setDifficulty(res.info.difficulty)
+      const rank = res.ranks.aredl ?? res.ranks.pointercrate
+      setStatus({
+        type: 'ok',
+        msg: `Found it on ${res.source}!${rank ? ` It's #${rank} on the demon list.` : ''} Check the details below.`,
+      })
     } catch {
       setStatus({ type: 'error', msg: "Couldn't look that level up. Fill in the details yourself below." })
     }
@@ -39,9 +54,13 @@ export function AddLevelModal({ onClose }: { onClose: () => void }) {
       return
     }
     const id = uid()
+    const gdLevelId = gdId.trim() || undefined
+    if (gdLevelId && !/^\d+$/.test(gdLevelId)) return setError('Level IDs are numbers only.')
+    const knownRanks = ranks && ranks.id === gdLevelId ? ranks.ranks : undefined
     await db.levels.add({
       id,
-      gdLevelId: gdId.trim() || undefined,
+      gdLevelId,
+      listRanks: knownRanks,
       name: name.trim(),
       creator: creator.trim() || 'Unknown',
       difficulty,
@@ -50,6 +69,8 @@ export function AddLevelModal({ onClose }: { onClose: () => void }) {
     })
     onClose()
     navigate(href.level(id))
+    // If they skipped the lookup, check the demon lists in the background.
+    if (gdLevelId && !knownRanks) refreshListRanks({ id, gdLevelId } as Level)
   }
 
   return (

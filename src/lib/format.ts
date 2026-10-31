@@ -15,6 +15,22 @@ export function todayISO(): string {
   return `${d.getFullYear()}-${m}-${day}`
 }
 
+/** Whole days from today until a YYYY-MM-DD date (negative once it's passed). */
+export function daysUntil(iso: string, today = todayISO()): number {
+  const toDay = (d: string) => {
+    const [y, m, day] = d.slice(0, 10).split('-').map(Number)
+    return Date.UTC(y, m - 1, day) / 86_400_000
+  }
+  return Math.round(toDay(iso) - toDay(today))
+}
+
+/** 3 -> "3 days left", 0 -> "due today", -1 -> "1 day overdue" */
+export function countdown(days: number): string {
+  if (days === 0) return 'due today'
+  if (days < 0) return `${-days} ${days === -1 ? 'day' : 'days'} overdue`
+  return `${days} ${days === 1 ? 'day' : 'days'} left`
+}
+
 export function formatDate(iso: string): string {
   const [y, m, d] = iso.slice(0, 10).split('-').map(Number)
   return new Date(y, m - 1, d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })

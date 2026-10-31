@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../db'
-import { formatBytes, todayISO } from '../lib/format'
+import { formatBytes } from '../lib/format'
 import { isPersisted, requestPersistence, storageEstimate } from '../lib/storage'
-import { downloadBlob, exportBackup, importBackup } from '../lib/backup'
-import { clearAll } from '../lib/data'
+import { downloadBackup, importBackup } from '../lib/backup'
+import { clearAll, refreshListRanks } from '../lib/data'
+import { setSetting, useSetting } from '../lib/settings'
+import { DEFAULT_THEME } from '../lib/theme'
+import { useInstallPrompt } from '../lib/pwa'
+import { ColorSwatches } from '../components/LookPickers'
 import { href } from '../router'
 
 export function Settings() {
@@ -19,6 +23,9 @@ export function Settings() {
   const [message, setMessage] = useState<{ type: 'good' | 'warn'; text: string } | null>(null)
   const [importFile, setImportFile] = useState<File | null>(null)
   const [mode, setMode] = useState<'merge' | 'replace'>('merge')
+  const theme = useSetting('theme')
+  const lastBackup = useSetting('lastBackupAt')
+  const install = useInstallPrompt()
 
   const refresh = async () => {
     setEstimate(await storageEstimate())
@@ -43,9 +50,8 @@ export function Settings() {
     setBusy('Building backup… 0%')
     setMessage(null)
     try {
-      const blob = await exportBackup((p) => setBusy(`Building backup… ${Math.round(p)}%`))
-      downloadBlob(blob, `gd-run-tracker-backup-${todayISO()}.zip`)
-      setMessage({ type: 'good', text: `Backup saved (${formatBytes(blob.size)}).` })
+      const size = await downloadBackup((p) => setBusy(`Building backup… ${Math.round(p)}%`))
+      setMessage({ type: 'good', text: `Backup saved (${formatBytes(size)}).` })
     } catch {
       setMessage({ type: 'warn', text: 'The backup failed. If you have a lot of video, try freeing up memory and retry.' })
     } finally {
@@ -67,6 +73,32 @@ export function Settings() {
     } finally {
       setBusy(null)
     }
+  }
+
+  const onRefreshRanks = async () => {
+    const levels = (await db.levels.toArray()).filter((l) => l.gdLevelId)
+    if (levels.length === 0) {
+      setMessage({ type: 'warn', text: 'None of your levels have an in-game ID yet. Add one with Edit on the level page.' })
+      return
+    }
+    setMessage(null)
+    let done = 0
+    let failed = 0
+    for (const level of levels) {
+      setBusy(`Checking demon lists… ${done}/${levels.length}`)
+      try {
+        await refreshListRanks(level)
+      } catch {
+        failed++
+      }
+      done++
+    }
+    setBusy(null)
+    setMessage(
+      failed
+        ? { type: 'warn', text: `Updated ${done - failed} of ${levels.length} levels. Some lookups failed, try again later.` }
+        : { type: 'good', text: `Updated list ranks for ${levels.length} levels.` },
+    )
   }
 
   const onClear = async () => {
@@ -124,8 +156,43 @@ export function Settings() {
       </section>
 
       <section className="panel settings-card">
+        <h2 className="outlined">Theme</h2>
+        <p>Pick the background color. Levels can have their own color too (Edit on a level's page).</p>
+        <ColorSwatches value={theme ?? DEFAULT_THEME} onChange={(c) => setSetting('theme', c)} />
+      </section>
+
+      <section className="panel settings-card">
+        <h2 className="outlined">App</h2>
+        {install.installed ? (
+          <p>You're using the installed app. It works offline.</p>
+        ) : install.canInstall ? (
+          <>
+            <p>Install Run Tracker to your desktop or home screen. It opens in its own window and works offline.</p>
+            <button className="gd-btn green" onClick={install.prompt}>
+              ⊕ Install App
+            </button>
+          </>
+        ) : (
+          <p>
+            You can install Run Tracker so it works offline. On iPhone or iPad, tap Share then <strong>Add to Home Screen</strong>. In
+            other browsers, look for an install icon in the address bar or the browser menu.
+          </p>
+        )}
+        <div className="row spaced">
+          <span>Demon list ranks come from Pointercrate and the AREDL.</span>
+          <button className="gd-btn blue small" onClick={onRefreshRanks} disabled={!!busy}>
+            ↻ Refresh all ranks
+          </button>
+        </div>
+        <p className="hint">Press ? anywhere to see keyboard shortcuts.</p>
+      </section>
+
+      <section className="panel settings-card">
         <h2 className="outlined">Backup</h2>
         <p>Download everything, videos included, as one .zip file.</p>
+        <p className="muted">
+          {lastBackup ? `Last backup: ${new Date(lastBackup).toLocaleString()}` : 'No backups downloaded from this browser yet.'}
+        </p>
         <button className="gd-btn green" onClick={onExport} disabled={!!busy}>
           ⬇ Download Backup
         </button>

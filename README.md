@@ -24,6 +24,7 @@ Everything is stored in your browser. There are no accounts and no server.
 - **Keyboard shortcuts**: `N` new run, `/` search, `A` add level, `?` for the list.
 - **Import a spreadsheet** (.xlsx or .csv) in Settings. It reads columns by their headers (Level, AREDL Rank, Status, Best from 0, Best Runs, Attempts, Notes…), understands section headings like "Next Up" or "Plan to Play", and shows a preview before saving. It can also look up level IDs and current ranks on the AREDL by name.
 - **Backup and restore**: one .zip file with all your data and videos, plus a reminder if you haven't backed up in a week.
+- **Sync between devices** (optional) with [Dexie Cloud](https://dexie.org/cloud/): sign in with an email code and your levels and runs sync between your phone and computer. Uploaded video files stay on the device they were added on.
 - **Installable (PWA)**: add it to your desktop or home screen and it works offline.
 
 ### How runs connect
@@ -57,6 +58,17 @@ Then open the address it prints (usually http://localhost:5173).
 4. Your site will be at `https://<your-username>.github.io/<repo-name>/`.
 
 The app uses hash URLs (`#/level/...`) and relative asset paths, so it works under any repo name with no extra config.
+
+## Setting up sync
+
+Sync uses Dexie Cloud's free tier. It's off until a database URL is set.
+
+1. On your computer, in this project folder, run `npx dexie-cloud create` and confirm the code sent to your email. It prints your database URL and saves `dexie-cloud.json` and `dexie-cloud.key` (keep these private; they're in `.gitignore`).
+2. Allow your site to connect: `npx dexie-cloud whitelist https://<your-username>.github.io` (add `http://localhost:5173` too for local development).
+3. Put the URL in `src/syncConfig.ts` and deploy.
+4. In the app, open **Settings → Sync → Sign in to sync** on each device with the same email. Sign in on the device that has your data first; data already on a device is uploaded when it first signs in.
+
+Signing out clears that device's local copy (synced data stays in your account), so download a backup first if you have uploaded videos there.
 
 ## Your data
 

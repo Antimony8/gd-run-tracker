@@ -44,6 +44,19 @@ export interface Level {
   /** Background color used while viewing this level. Unset = the app theme. */
   theme?: string
   listRanks?: ListRanks
+  /** Stats imported from the Death Tracker mod. */
+  deathStats?: DeathStats
+}
+
+/** What the Death Tracker mod recorded for a level. */
+export interface DeathStats {
+  /** Deaths from 0 at each percent ("100" counts completions). */
+  deaths: Record<string, number>
+  /** GD's own attempt counter, as saved by the mod. */
+  attempts: number
+  playtimeMs: number
+  sessions: number
+  importedAt: number
 }
 
 /**

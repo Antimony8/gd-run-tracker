@@ -5,13 +5,15 @@ import { db } from '../db'
 import { DIFFICULTIES, type Difficulty, type Level, type Thumbnail } from '../types'
 import { ColorSwatches, ThumbnailPicker } from './LookPickers'
 import { todayISO } from '../lib/format'
-import { applyVideoChoice, refreshListRanks } from '../lib/data'
+import { applyVideoChoice, needsDrive, refreshListRanks, saveErrorMessage } from '../lib/data'
+import { ensureDriveAccess } from '../lib/googleDrive'
 
 export function BeatenModal({ level, onClose }: { level: Level; onClose: () => void }) {
   const [date, setDate] = useState(level.beatenDate ?? todayISO())
   const [video, setVideo] = useState<VideoChoice>(initialChoice(level.completionVideo))
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [status, setStatus] = useState('')
 
   const save = async (e: FormEvent) => {
     e.preventDefault()
@@ -19,12 +21,15 @@ export function BeatenModal({ level, onClose }: { level: Level; onClose: () => v
     if (err) return setError(err)
     setSaving(true)
     try {
-      const completionVideo = await applyVideoChoice(video, level.completionVideo)
+      // Ask for Google access first, while this still counts as the user's tap.
+      if (needsDrive(video)) await ensureDriveAccess()
+      const completionVideo = await applyVideoChoice(video, level.completionVideo, setStatus)
       await db.levels.update(level.id, { beaten: true, beatenDate: date || todayISO(), completionVideo })
       onClose()
-    } catch {
-      setError('Saving failed. Your browser storage may be full.')
+    } catch (err) {
+      setError(saveErrorMessage(err))
       setSaving(false)
+      setStatus('')
     }
   }
 
@@ -43,7 +48,7 @@ export function BeatenModal({ level, onClose }: { level: Level; onClose: () => v
             Cancel
           </button>
           <button type="submit" className="gd-btn gold" disabled={saving}>
-            {saving ? 'Saving…' : level.beaten ? 'Save' : 'Mark Beaten'}
+            {saving ? status || 'Saving…' : level.beaten ? 'Save' : 'Mark Beaten'}
           </button>
         </div>
       </form>

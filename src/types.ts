@@ -15,10 +15,12 @@ export const DIFFICULTIES = [
 
 export type Difficulty = (typeof DIFFICULTIES)[number]
 
-/** A video attached to a run or a completion: either an uploaded file (stored in the videos table) or an external link. */
+/** A video attached to a run or a completion: an uploaded file (stored in the videos table), an external link, or a Google Drive file. */
 export type VideoRef =
   | { kind: 'upload'; videoId: string; name: string }
   | { kind: 'link'; url: string }
+  /** A file in the user's own Google Drive, so it plays on every device. */
+  | { kind: 'drive'; fileId: string; name: string }
 
 export interface Level {
   id: string

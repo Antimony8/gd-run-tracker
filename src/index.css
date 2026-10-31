@@ -748,25 +748,8 @@ textarea {
 }
 
 /* ---------- Difficulty ---------- */
-.diff-orb {
-  position: relative;
-  width: var(--size);
-  height: var(--size);
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--diff) 55%, white), var(--diff) 55%, color-mix(in srgb, var(--diff) 60%, black));
-  border: 3px solid #000;
-  box-shadow:
-    inset 0 -4px 0 rgba(0, 0, 0, 0.25),
-    0 3px 0 rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(var(--size) * 0.36);
-}
-
-/* Rated levels show their difficulty face instead of the orb (the game's faces, or Grandpa Demon tier faces). */
-.demon-face {
+/* Difficulty faces from the game, or Grandpa Demon tier faces for top-500 extremes. */
+.diff-face {
   position: relative;
   width: var(--size);
   height: var(--size);
@@ -775,22 +758,22 @@ textarea {
   align-items: center;
   justify-content: center;
 }
-.demon-face img {
+.diff-face img {
   width: 128%;
   height: 128%;
   object-fit: contain;
   filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.45));
   user-select: none;
 }
-/* Non-demon faces have no horns, so they fill their box like the orb did. */
-.demon-face.round-face img {
+/* Non-demon faces have no horns, so they fill their box. */
+.diff-face.round-face img {
   width: 100%;
   height: 100%;
 }
-.demon-face.tier-infinite img {
+.diff-face.tier-infinite img {
   filter: drop-shadow(0 0 6px rgba(255, 210, 63, 0.55)) drop-shadow(0 3px 0 rgba(0, 0, 0, 0.45));
 }
-.demon-face.tier-grandpa img {
+.diff-face.tier-grandpa img {
   width: 140%;
   height: 140%;
   animation: grandpa-float 3s ease-in-out infinite;

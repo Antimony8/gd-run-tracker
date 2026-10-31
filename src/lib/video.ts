@@ -18,6 +18,31 @@ export function youtubeId(url: string): string | null {
   return null
 }
 
+// twitter.com, x.com and the common "fix" mirrors people share to get previews in Discord.
+const TWEET_HOSTS = new Set([
+  'twitter.com',
+  'mobile.twitter.com',
+  'x.com',
+  'fxtwitter.com',
+  'vxtwitter.com',
+  'fixupx.com',
+  'fixvx.com',
+])
+
+/** Extracts the post ID from a Twitter/X link like x.com/user/status/123, or returns null. */
+export function tweetId(url: string): string | null {
+  try {
+    const u = new URL(url)
+    if (!TWEET_HOSTS.has(u.hostname.replace(/^www\./, ''))) return null
+    return u.pathname.match(/^\/(?:[^/]+|i\/web)\/status(?:es)?\/(\d+)/)?.[1] ?? null
+  } catch {
+    return null
+  }
+}
+
+/** Links that play inside the app rather than opening in a new tab. */
+export const playsInApp = (url: string) => !!(youtubeId(url) || tweetId(url))
+
 export function isValidUrl(text: string): boolean {
   try {
     const u = new URL(text)
@@ -29,6 +54,7 @@ export function isValidUrl(text: string): boolean {
 
 export function linkLabel(url: string): string {
   if (youtubeId(url)) return 'YouTube'
+  if (tweetId(url)) return 'X'
   try {
     const host = new URL(url).hostname.replace(/^www\./, '')
     if (host.includes('medal.tv')) return 'Medal'

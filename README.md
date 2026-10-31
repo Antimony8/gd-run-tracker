@@ -18,7 +18,7 @@ Everything is stored in your browser. There are no accounts and no server.
 - **Runs from 0** show as just the percent you reached (`0–31` shows as `31%`), like a normal-mode attempt.
 - **Log runs** with decimals (e.g. `47.25`), a date, a note, and an optional video.
   - Quick add: type `25-75` in the Runs box and press Enter.
-- **Videos**: upload a clip (stored in your browser) or paste a YouTube/Medal link.
+- **Videos**: upload a clip (stored in your browser) or paste a YouTube, X/Twitter or Medal link. YouTube and X videos play right in the app.
 - **Mark levels beaten** with a completion date and video.
 - **Undo** after deleting a run.
 - **Keyboard shortcuts**: `N` new run, `/` search, `A` add level, `?` for the list.

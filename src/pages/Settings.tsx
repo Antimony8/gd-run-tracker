@@ -10,6 +10,7 @@ import { DEFAULT_THEME } from '../lib/theme'
 import { useInstallPrompt } from '../lib/pwa'
 import { ColorSwatches } from '../components/LookPickers'
 import { ImportModal } from '../components/ImportModal'
+import { SyncCard } from '../components/SyncCard'
 import { readSpreadsheet } from '../lib/sheetReader'
 import { parseSheets, type ImportRow } from '../lib/spreadsheetImport'
 import type { Level } from '../types'
@@ -125,7 +126,8 @@ export function Settings() {
   }
 
   const onClear = async () => {
-    if (!confirm('Delete every level, run and video? This cannot be undone.')) return
+    const synced = db.cloud.currentUser.value.isLoggedIn
+    if (!confirm(`Delete every level, run and video?${synced ? ' This also deletes them from your synced devices.' : ''} This cannot be undone.`)) return
     if (!confirm('Last chance. Did you make a backup first?')) return
     await clearAll()
     setMessage({ type: 'good', text: 'All data deleted.' })
@@ -177,6 +179,8 @@ export function Settings() {
           Everything is saved in this browser only. Clearing site data or switching browsers loses it, so make backups.
         </p>
       </section>
+
+      <SyncCard />
 
       <section className="panel settings-card">
         <h2 className="outlined">Theme</h2>

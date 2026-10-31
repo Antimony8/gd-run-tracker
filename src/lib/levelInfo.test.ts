@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { difficultyFromStars, fromGDBrowser, fromGDHistory, listRank, lookupLevel, pointercrateSection } from './levelInfo'
+import { clearListCache, difficultyFromStars, findOnAredlByName, fromGDBrowser, fromGDHistory, listRank, lookupLevel, pointercrateSection } from './levelInfo'
 
 type Routes = Record<string, unknown | ((url: string) => Response)>
 
@@ -21,6 +21,7 @@ const notFound = () => new Response('Not found', { status: 404 })
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  clearListCache()
 })
 
 describe('parsers', () => {
@@ -142,5 +143,21 @@ describe('lookupLevel', () => {
     const res = await lookupLevel('1')
     expect(res.info).toBeNull()
     expect(res.source).toBeNull()
+  })
+})
+
+describe('findOnAredlByName', () => {
+  it('matches names loosely and skips 2-player versions', async () => {
+    mockFetch({
+      'https://api.aredl.net/v2/api/aredl/levels': [
+        { position: 380, name: 'Sonic Wave', level_id: 26681070, two_player: true },
+        { position: 382, name: 'Sonic Wave', level_id: 26681070, two_player: false },
+        { position: 392, name: 'Yatagarasu', level_id: 6508283, two_player: false },
+      ],
+    })
+    const found = await findOnAredlByName(['sonic wave', 'YATAGARASU', 'Not A Level'])
+    expect(found.get('sonic wave')).toEqual({ gdLevelId: '26681070', position: 382 })
+    expect(found.get('YATAGARASU')?.position).toBe(392)
+    expect(found.has('Not A Level')).toBe(false)
   })
 })

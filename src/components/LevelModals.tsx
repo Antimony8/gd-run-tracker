@@ -128,7 +128,7 @@ export function EditLevelModal({ level, onClose }: { level: Level; onClose: () =
         </div>
 
         <h3 className="form-section outlined">Look</h3>
-        <ThumbnailPicker value={thumbnail} onChange={setThumbnail} />
+        <ThumbnailPicker value={thumbnail} onChange={setThumbnail} gdLevelId={/^\d+$/.test(gdId.trim()) ? gdId.trim() : undefined} />
         <div className="field">
           <span className="field-label">Background color on this level's page</span>
           <ColorSwatches value={theme} onChange={setTheme} noneLabel="App theme" />

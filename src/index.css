@@ -1,6 +1,14 @@
+/* ---------- Fonts ---------- */
+/* Pusab by Ryoichi Tsunekawa (Flat-it), the font Geometry Dash uses for its titles and buttons. Freeware. */
+@font-face {
+  font-family: 'Pusab';
+  src: url('./assets/fonts/pusab.otf') format('opentype');
+  font-display: swap;
+}
+
 /* ---------- Tokens ---------- */
 :root {
-  --font-display: 'Lilita One', 'Arial Black', system-ui, sans-serif;
+  --font-display: 'Pusab', 'Arial Black', system-ui, sans-serif;
   --font-body: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --bg-1: #2a6cf0;
@@ -134,6 +142,10 @@ body::before {
 a {
   color: inherit;
   text-decoration: none;
+}
+a.text-link {
+  color: var(--gold);
+  text-decoration: underline;
 }
 
 h1,
@@ -686,25 +698,46 @@ textarea {
   justify-content: center;
   font-size: calc(var(--size) * 0.36);
 }
-.diff-orb.demon::before,
-.diff-orb.demon::after {
-  content: '';
-  position: absolute;
-  top: calc(var(--size) * -0.12);
-  width: 0;
-  height: 0;
-  border-left: calc(var(--size) * 0.12) solid transparent;
-  border-right: calc(var(--size) * 0.12) solid transparent;
-  border-bottom: calc(var(--size) * 0.3) solid #000;
-  z-index: -1;
+
+/* Demons show a demon face instead of the orb (the game's faces, or Grandpa Demon tier faces). */
+.demon-face {
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.diff-orb.demon::before {
-  left: calc(var(--size) * 0.08);
-  transform: rotate(-25deg);
+.demon-face img {
+  width: 128%;
+  height: 128%;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.45));
+  user-select: none;
 }
-.diff-orb.demon::after {
-  right: calc(var(--size) * 0.08);
-  transform: rotate(25deg);
+.demon-face.tier-infinite img {
+  filter: drop-shadow(0 0 6px rgba(255, 210, 63, 0.55)) drop-shadow(0 3px 0 rgba(0, 0, 0, 0.45));
+}
+.demon-face.tier-grandpa img {
+  width: 140%;
+  height: 140%;
+  animation: grandpa-float 3s ease-in-out infinite;
+}
+@keyframes grandpa-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-3px) rotate(2deg);
+  }
+}
+.tier-badge.tier-infinite {
+  color: var(--gold);
+}
+.tier-badge.tier-grandpa {
+  background: linear-gradient(90deg, #6b3fa0, #c0392b);
 }
 
 .diff-badge {
@@ -1124,6 +1157,9 @@ textarea {
   transform: none;
 }
 .rank-chip {
+  /* Pusab draws "#" as a numero sign, so rank numbers use the body font. */
+  font-family: var(--font-body);
+  font-weight: 800;
   font-size: 13px;
   background: rgba(255, 90, 90, 0.28);
 }
@@ -1200,6 +1236,14 @@ textarea {
     linear-gradient(100deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.78) 65%),
     var(--thumb-img) center / cover;
 }
+.level-header.thumb-image {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.55) 55%, rgba(0, 0, 0, 0.3) 100%),
+    var(--thumb-img) center / cover;
+}
+.level-header.thumb-color {
+  background: linear-gradient(100deg, color-mix(in srgb, var(--thumb) 85%, transparent) 0%, var(--panel) 70%);
+}
 .level-card.beaten.thumb-color,
 .level-card.beaten.thumb-image {
   box-shadow:
@@ -1258,6 +1302,11 @@ textarea {
   width: 100%;
   height: 100%;
   padding: 0;
+}
+.thumb-auto {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 .thumb-drop img {
   display: block;
@@ -1333,6 +1382,70 @@ kbd {
   box-shadow: 0 3px 0 #000;
 }
 
+/* ---------- Spreadsheet import ---------- */
+.import-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 46vh;
+  overflow-y: auto;
+}
+.import-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.5fr) 150px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 2px solid rgba(0, 0, 0, 0.6);
+  border-radius: 10px;
+}
+.import-row.skipped {
+  opacity: 0.5;
+}
+.import-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.import-name .muted {
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.import-existing {
+  font-size: 11px;
+  cursor: default;
+}
+.import-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.check-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-weight: 700;
+  cursor: pointer;
+}
+.check-row input {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  flex-shrink: 0;
+  accent-color: var(--gd-green);
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 760px) {
   .hero {
@@ -1386,6 +1499,10 @@ kbd {
   }
   .queue-num {
     font-size: 24px;
+  }
+  .import-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
 }
 

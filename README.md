@@ -10,16 +10,19 @@ Everything is stored in your browser. There are no accounts and no server.
 - **Next Up queue**: line up the levels you'll play next and reorder them.
 - **Goals**: give a level a goal ("Get it in 3 runs") and a target date with a countdown.
 - **Add levels by ID**: details auto-fill from [GDBrowser](https://gdbrowser.com), falling back to GDBrowser search, [GDHistory](https://history.geometrydash.eu), and the demon lists if a service is down. You can always enter them by hand.
+- **Grandpa Demon tiers**: extreme demons in the AREDL top 500 get the tiers and demon faces from the [Grandpa Demon](https://github.com/ItzKiba/GrandpaDemon) mod (Supreme, Ultimate, Legendary, Mythical, Infinite, Grandpa).
 - **Demon list ranks** from [Pointercrate](https://pointercrate.com) and the [AREDL](https://aredl.net), refreshable per level or all at once in Settings.
-- **Card thumbnails**: a color or your own image on each level card.
+- **Card thumbnails**: levels with an in-game ID automatically use their community thumbnail from the [Level Thumbnails](https://geode-sdk.org/mods/cdc.level_thumbnails) mod. You can switch to a color, your own image, or none.
 - **Themes**: pick the app's background color, and give any level its own. Colors fade between pages like a GD color trigger.
 - **Run calculator**: finds the fewest runs that chain from 0 to 100, shows them on a GD-style bar with one lane per run, and highlights the missing gap if there is one.
+- **Runs from 0** show as just the percent you reached (`0–31` shows as `31%`), like a normal-mode attempt.
 - **Log runs** with decimals (e.g. `47.25`), a date, a note, and an optional video.
   - Quick add: type `25-75` in the Runs box and press Enter.
 - **Videos**: upload a clip (stored in your browser) or paste a YouTube/Medal link.
 - **Mark levels beaten** with a completion date and video.
 - **Undo** after deleting a run.
 - **Keyboard shortcuts**: `N` new run, `/` search, `A` add level, `?` for the list.
+- **Import a spreadsheet** (.xlsx or .csv) in Settings. It reads columns by their headers (Level, AREDL Rank, Status, Best from 0, Best Runs, Attempts, Notes…), understands section headings like "Next Up" or "Plan to Play", and shows a preview before saving. It can also look up level IDs and current ranks on the AREDL by name.
 - **Backup and restore**: one .zip file with all your data and videos, plus a reminder if you haven't backed up in a week.
 - **Installable (PWA)**: add it to your desktop or home screen and it works offline.
 
@@ -71,6 +74,10 @@ src/
     backup.ts         Zip export/import
     data.ts           Saving/deleting levels, runs and videos; Next Up queue
     levelInfo.ts      Level lookup by ID and demon list ranks (+ tests)
+    sheetReader.ts    Reads .xlsx and .csv files into rows
+    spreadsheetImport.ts  Turns spreadsheet rows into levels and runs (+ tests)
+    demonTier.ts      Grandpa Demon tiers from AREDL position (+ tests)
+    levelThumbnail.ts Community level thumbnails (levelthumbs.prevter.me)
     format.ts         Number/date formatting and validation (+ tests)
     settings.ts       App settings stored in IndexedDB
     theme.ts          Background color themes
@@ -91,4 +98,4 @@ sw-template.js        Offline service worker; vite.config.ts fills in the file l
 
 Runs store a `createdAt` timestamp, which leaves room for future features like a progress-over-time graph, a death heatmap, or a stats page.
 
-Geometry Dash is a game by RobTop Games. This is a fan-made tool and isn't affiliated with RobTop. All art in the app is original.
+Geometry Dash is a game by RobTop Games. This is a fan-made tool and isn't affiliated with RobTop. The demon faces in `src/assets/demons/` are from Geometry Dash (Easy to Extreme Demon, by RobTop Games) and the [Grandpa Demon](https://github.com/ItzKiba/GrandpaDemon) mod by ItzKiba (the tier faces; Grandpa Demon sprite by tcoffa). The display font is Pusab by Ryoichi Tsunekawa (Flat-it), the font Geometry Dash uses; it is freeware. All other art in the app is original.

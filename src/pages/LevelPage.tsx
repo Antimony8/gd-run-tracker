@@ -3,18 +3,23 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../db'
 import type { Level, Run } from '../types'
 import { calculateRuns } from '../lib/runCalc'
-import { formatDate, parseQuickRun, pct, range, todayISO, uid, validateRun } from '../lib/format'
+import { formatDate, parseQuickRun, pct, range, runLabel, todayISO, uid, validateRun } from '../lib/format'
 import { addToQueue, deleteLevel, deleteRun, refreshListRanks, removeFromQueue, removeVideo, restoreRun } from '../lib/data'
 import { pointercrateSection } from '../lib/levelInfo'
 import { useShortcut } from '../lib/shortcuts'
+import { useThumbBackground } from '../lib/levelThumbnail'
 import { showToast } from '../lib/toast'
 import { countdown, daysUntil } from '../lib/format'
 import { href, navigate } from '../router'
 import { DifficultyBadge, DifficultyOrb } from '../components/DifficultyBadge'
+import { demonTier } from '../lib/demonTier'
 import { NormalBar, RunBar, RunLanes, runColor } from '../components/ProgressBar'
 import { RunFormModal } from '../components/RunFormModal'
 import { VideoButton } from '../components/VideoModal'
 import { BeatenModal, EditLevelModal } from '../components/LevelModals'
+
+// Stand-in while the level loads, so hooks run in the same order every render.
+const NO_LEVEL = { thumbnail: { kind: 'none' } } as Level
 
 type Dialog = { type: 'log' } | { type: 'edit-run'; run: Run } | { type: 'beaten' } | { type: 'edit-level' } | null
 
@@ -25,6 +30,7 @@ export function LevelPage({ id }: { id: string }) {
   const [dialog, setDialog] = useState<Dialog>(null)
 
   const calc = useMemo(() => calculateRuns(runs ?? []), [runs])
+  const thumb = useThumbBackground(level ?? NO_LEVEL, 'medium')
   useShortcut('n', () => setDialog({ type: 'log' }), !!level)
 
   if (level === undefined || runs === undefined) return <div className="loading outlined">Loading…</div>
@@ -41,6 +47,7 @@ export function LevelPage({ id }: { id: string }) {
     )
   }
 
+  const tier = demonTier(level)
   const chainIndex = new Map(calc.chain.map((r, i) => [r.id, i]))
   const history = [...runs].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt)
   const close = () => setDialog(null)
@@ -53,7 +60,7 @@ export function LevelPage({ id }: { id: string }) {
 
   const onDeleteRun = async (run: Run) => {
     const deleted = await deleteRun(run)
-    showToast(`Deleted the ${range(run.start, run.end)} run.`, { label: 'Undo', run: () => restoreRun(deleted) })
+    showToast(`Deleted the ${runLabel(run.start, run.end)} run.`, { label: 'Undo', run: () => restoreRun(deleted) })
   }
 
   const onUnbeat = async () => {
@@ -68,8 +75,8 @@ export function LevelPage({ id }: { id: string }) {
         ‹ Levels
       </a>
 
-      <header className="panel level-header">
-        <DifficultyOrb difficulty={level.difficulty} size={84} />
+      <header className={`panel level-header ${thumb.className}`} style={thumb.style}>
+        <DifficultyOrb difficulty={level.difficulty} tier={tier} size={84} />
         <div className="level-header-info">
           <h1 className="outlined">{level.name}</h1>
           <p className="muted">
@@ -77,7 +84,7 @@ export function LevelPage({ id }: { id: string }) {
             {level.gdLevelId && <> · ID {level.gdLevelId}</>}
           </p>
           <div className="badge-row">
-            <DifficultyBadge difficulty={level.difficulty} />
+            <DifficultyBadge difficulty={level.difficulty} tier={tier} />
             <ListRankChips level={level} />
           </div>
         </div>
@@ -135,7 +142,7 @@ export function LevelPage({ id }: { id: string }) {
             {calc.complete
               ? calc.chain.length === 1
                 ? 'You have a full 0–100 run!'
-                : `You have it in ${calc.chain.length} runs: ${calc.chain.map((r) => range(r.start, r.end)).join(' → ')}`
+                : `You have it in ${calc.chain.length} runs: ${calc.chain.map((r) => runLabel(r.start, r.end)).join(' → ')}`
               : runs.length
                 ? `Chained to ${pct(calc.reach)}. Missing ${range(calc.gap!.from, calc.gap!.to)}.`
                 : 'Log your first run below.'}
@@ -168,7 +175,7 @@ export function LevelPage({ id }: { id: string }) {
               return (
                 <li key={r.id} className={`run-row ${ci !== undefined ? 'in-chain' : ''}`}>
                   <span className="run-range outlined" style={ci !== undefined ? { color: runColor(ci) } : undefined}>
-                    {range(r.start, r.end)}
+                    {runLabel(r.start, r.end)}
                   </span>
                   <div className="run-mini">
                     <div
@@ -183,7 +190,7 @@ export function LevelPage({ id }: { id: string }) {
                   <span className="run-note">{r.note}</span>
                   <span className="run-actions">
                     {ci !== undefined && <span className="chip chain-chip">Run {ci + 1}</span>}
-                    {r.video && <VideoButton video={r.video} title={`${level.name}: ${range(r.start, r.end)}`} />}
+                    {r.video && <VideoButton video={r.video} title={`${level.name}: ${runLabel(r.start, r.end)}`} />}
                     <button className="icon-btn" title="Edit run" onClick={() => setDialog({ type: 'edit-run', run: r })}>
                       ✎
                     </button>

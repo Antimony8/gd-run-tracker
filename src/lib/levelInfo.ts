@@ -134,17 +134,27 @@ function fromAredl(level: unknown): ListEntry | null {
 
 let aredlList: Promise<unknown> | null = null
 
+/** Forgets the cached AREDL list so the next lookup fetches it again. */
+export function clearListCache() {
+  aredlList = null
+}
+
+/** The full AREDL list, fetched once per visit. */
+function fetchAredlList(): Promise<unknown> {
+  aredlList ??= getJson('https://api.aredl.net/v2/api/aredl/levels').catch((e) => {
+    aredlList = null
+    throw e
+  })
+  return aredlList
+}
+
 /** The All Rated Extreme Demons List. Falls back to scanning the full list if the single-level endpoint fails. */
 async function aredl(id: string): Promise<ListEntry | null> {
   try {
     return fromAredl(await getJson(`https://api.aredl.net/v2/api/aredl/levels/${id}`))
   } catch (err) {
     if (err instanceof NotFound) return null
-    aredlList ??= getJson('https://api.aredl.net/v2/api/aredl/levels').catch((e) => {
-      aredlList = null
-      throw e
-    })
-    const list = await aredlList
+    const list = await fetchAredlList()
     if (!Array.isArray(list)) return null
     return fromAredl(list.find((l) => isObj(l) && String(l.level_id) === id && !l.two_player))
   }
@@ -203,4 +213,28 @@ export function pointercrateSection(position: number): string {
   if (position <= 75) return 'Main'
   if (position <= 150) return 'Extended'
   return 'Legacy'
+}
+
+const simplify = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, '')
+
+/**
+ * Looks levels up on the AREDL by name, for spreadsheets that don't have level IDs.
+ * Returns the in-game ID and current position for each name it finds. Throws if the list can't be reached.
+ */
+export async function findOnAredlByName(names: string[]): Promise<Map<string, { gdLevelId: string; position: number }>> {
+  const list = await fetchAredlList()
+  const byName = new Map<string, { gdLevelId: string; position: number }>()
+  if (Array.isArray(list)) {
+    for (const l of list) {
+      if (!isObj(l) || l.two_player || typeof l.position !== 'number' || l.level_id == null || !str(l.name)) continue
+      const key = simplify(str(l.name)!)
+      if (!byName.has(key)) byName.set(key, { gdLevelId: String(l.level_id), position: l.position })
+    }
+  }
+  const found = new Map<string, { gdLevelId: string; position: number }>()
+  for (const name of names) {
+    const hit = byName.get(simplify(name))
+    if (hit) found.set(name, hit)
+  }
+  return found
 }

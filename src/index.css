@@ -135,6 +135,10 @@ a {
   color: inherit;
   text-decoration: none;
 }
+a.text-link {
+  color: var(--gold);
+  text-decoration: underline;
+}
 
 h1,
 h2,
@@ -1354,6 +1358,70 @@ kbd {
   box-shadow: 0 3px 0 #000;
 }
 
+/* ---------- Spreadsheet import ---------- */
+.import-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 46vh;
+  overflow-y: auto;
+}
+.import-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.5fr) 150px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 2px solid rgba(0, 0, 0, 0.6);
+  border-radius: 10px;
+}
+.import-row.skipped {
+  opacity: 0.5;
+}
+.import-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.import-name .muted {
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.import-existing {
+  font-size: 11px;
+  cursor: default;
+}
+.import-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.check-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-weight: 700;
+  cursor: pointer;
+}
+.check-row input {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  flex-shrink: 0;
+  accent-color: var(--gd-green);
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 760px) {
   .hero {
@@ -1407,6 +1475,10 @@ kbd {
   }
   .queue-num {
     font-size: 24px;
+  }
+  .import-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
 }
 

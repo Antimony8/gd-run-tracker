@@ -9,6 +9,10 @@ import { setSetting, useSetting } from '../lib/settings'
 import { DEFAULT_THEME } from '../lib/theme'
 import { useInstallPrompt } from '../lib/pwa'
 import { ColorSwatches } from '../components/LookPickers'
+import { ImportModal } from '../components/ImportModal'
+import { readSpreadsheet } from '../lib/sheetReader'
+import { parseSheets, type ImportRow } from '../lib/spreadsheetImport'
+import type { Level } from '../types'
 import { href } from '../router'
 
 export function Settings() {
@@ -26,6 +30,7 @@ export function Settings() {
   const theme = useSetting('theme')
   const lastBackup = useSetting('lastBackupAt')
   const install = useInstallPrompt()
+  const [sheetImport, setSheetImport] = useState<{ fileName: string; rows: ImportRow[]; levels: Level[] } | null>(null)
 
   const refresh = async () => {
     setEstimate(await storageEstimate())
@@ -72,6 +77,24 @@ export function Settings() {
       setMessage({ type: 'warn', text: err instanceof Error ? err.message : 'Restoring failed.' })
     } finally {
       setBusy(null)
+    }
+  }
+
+  const onSpreadsheet = async (file: File | undefined) => {
+    if (!file) return
+    setMessage(null)
+    try {
+      const rows = parseSheets(await readSpreadsheet(file))
+      if (rows.length === 0) {
+        setMessage({
+          type: 'warn',
+          text: 'No levels found. The sheet needs a header row with a "Level" (or "Name") column above your levels.',
+        })
+        return
+      }
+      setSheetImport({ fileName: file.name, rows, levels: await db.levels.toArray() })
+    } catch (err) {
+      setMessage({ type: 'warn', text: err instanceof Error ? err.message : "That spreadsheet couldn't be read." })
     }
   }
 
@@ -222,12 +245,33 @@ export function Settings() {
         </button>
       </section>
 
+      <section className="panel settings-card">
+        <h2 className="outlined">Import Spreadsheet</h2>
+        <p>
+          Bring in levels from an Excel (.xlsx) or .csv file. It needs a <strong>Level</strong> column; it also picks up
+          columns like AREDL Rank, Status, Best from 0, Best Runs, Attempts and Notes. You'll see a preview before anything
+          is saved.
+        </p>
+        <label className="file-drop">
+          <input
+            type="file"
+            accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+            onChange={(e) => {
+              onSpreadsheet(e.target.files?.[0])
+              e.target.value = ''
+            }}
+          />
+          <span>📄 Click to choose a spreadsheet</span>
+        </label>
+      </section>
+
       <section className="panel settings-card danger-zone">
         <h2 className="outlined">Danger Zone</h2>
         <button className="gd-btn red" onClick={onClear} disabled={!!busy}>
           Delete all data
         </button>
       </section>
+      {sheetImport && <ImportModal {...sheetImport} onClose={() => setSheetImport(null)} />}
     </div>
   )
 }

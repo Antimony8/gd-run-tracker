@@ -1,6 +1,14 @@
+/* ---------- Fonts ---------- */
+/* Pusab by Ryoichi Tsunekawa (Flat-it), the font Geometry Dash uses for its titles and buttons. Freeware. */
+@font-face {
+  font-family: 'Pusab';
+  src: url('./assets/fonts/pusab.otf') format('opentype');
+  font-display: swap;
+}
+
 /* ---------- Tokens ---------- */
 :root {
-  --font-display: 'Lilita One', 'Arial Black', system-ui, sans-serif;
+  --font-display: 'Pusab', 'Arial Black', system-ui, sans-serif;
   --font-body: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --bg-1: #2a6cf0;
@@ -1149,6 +1157,9 @@ textarea {
   transform: none;
 }
 .rank-chip {
+  /* Pusab draws "#" as a numero sign, so rank numbers use the body font. */
+  font-family: var(--font-body);
+  font-weight: 800;
   font-size: 13px;
   background: rgba(255, 90, 90, 0.28);
 }

@@ -98,4 +98,4 @@ sw-template.js        Offline service worker; vite.config.ts fills in the file l
 
 Runs store a `createdAt` timestamp, which leaves room for future features like a progress-over-time graph, a death heatmap, or a stats page.
 
-Geometry Dash is a game by RobTop Games. This is a fan-made tool and isn't affiliated with RobTop. The demon faces in `src/assets/demons/` are from Geometry Dash (Easy to Extreme Demon, by RobTop Games) and the [Grandpa Demon](https://github.com/ItzKiba/GrandpaDemon) mod by ItzKiba (the tier faces; Grandpa Demon sprite by tcoffa). All other art in the app is original.
+Geometry Dash is a game by RobTop Games. This is a fan-made tool and isn't affiliated with RobTop. The demon faces in `src/assets/demons/` are from Geometry Dash (Easy to Extreme Demon, by RobTop Games) and the [Grandpa Demon](https://github.com/ItzKiba/GrandpaDemon) mod by ItzKiba (the tier faces; Grandpa Demon sprite by tcoffa). The display font is Pusab by Ryoichi Tsunekawa (Flat-it), the font Geometry Dash uses; it is freeware. All other art in the app is original.

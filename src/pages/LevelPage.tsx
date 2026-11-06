@@ -31,7 +31,6 @@ export function LevelPage({ id }: { id: string }) {
   const level = useLiveQuery(async () => (await db.levels.get(id)) ?? null, [id])
   const runs = useLiveQuery(() => db.runs.where('levelId').equals(id).toArray(), [id])
   const [dialog, setDialog] = useState<Dialog>(null)
-  const [showObsolete, setShowObsolete] = useState(false)
 
   const calc = useMemo(() => calculateRuns(runs ?? []), [runs])
   const thumb = useThumbBackground(level ?? NO_LEVEL, 'medium')
@@ -53,9 +52,30 @@ export function LevelPage({ id }: { id: string }) {
 
   const tier = demonTier(level)
   const chainIndex = new Map(calc.chain.map((r, i) => [r.id, i]))
-  const groups = groupRuns(runs, calc.chain)
+  // A beaten level's chain is its completion run; the chain it had before is kept as a "legacy" view.
+  const completion = runs.find((r) => r.completion)
+  const legacy = completion ? calculateRuns(runs.filter((r) => r !== completion)) : null
+  const groups = legacy
+    ? { connected: [completion!], other: [], obsolete: runs.filter((r) => r !== completion && !legacy.chain.includes(r)) }
+    : groupRuns(runs, calc.chain)
+  const legacyIndex = new Map(legacy?.chain.map((r, i) => [r.id, i]))
+
+  let heroSummary: string
+  if (legacy) {
+    heroSummary =
+      legacy.complete && legacy.chain.length > 1 ? `Beaten! Before that you had it in ${legacy.chain.length} runs.` : 'Beaten!'
+  } else if (calc.complete) {
+    heroSummary =
+      calc.chain.length === 1
+        ? 'You have a full 0–100 run!'
+        : `You have it in ${calc.chain.length} runs: ${calc.chain.map((r) => runLabel(r.start, r.end)).join(' → ')}`
+  } else {
+    heroSummary = runs.length
+      ? `Chained to ${pct(calc.reach)}. Missing ${range(calc.gap!.from, calc.gap!.to)}.`
+      : 'Log your first run below.'
+  }
   const renderRun = (r: Run) => {
-    const ci = chainIndex.get(r.id)
+    const ci = chainIndex.get(r.id) ?? legacyIndex.get(r.id)
     return (
       <li key={r.id} className={`run-row ${ci !== undefined ? 'in-chain' : ''}`}>
         <span className="run-range outlined" style={ci !== undefined ? { color: runColor(ci) } : undefined}>
@@ -73,18 +93,24 @@ export function LevelPage({ id }: { id: string }) {
         <span className="run-date muted">{formatDate(r.date)}</span>
         <span className="run-note">{r.note}</span>
         <span className="run-actions">
-          {ci !== undefined && <span className="chip chain-chip">Run {ci + 1}</span>}
+          {r.completion ? (
+            <span className="chip chain-chip completion-chip" title="Added when you marked the level beaten. Unmark beaten to remove it.">
+              ★ Completion
+            </span>
+          ) : (
+            ci !== undefined && <span className="chip chain-chip">Run {ci + 1}</span>
+          )}
           {r.video && <VideoButton video={r.video} title={`${level.name}: ${runLabel(r.start, r.end)}`} />}
-          <button className="icon-btn" title="Edit run" onClick={() => setDialog({ type: 'edit-run', run: r })}>
-            <img className="btn-icon" src={editIcon} alt="" />
-          </button>
-          <button
-            className="icon-btn danger"
-            title="Delete run"
-            onClick={() => onDeleteRun(r)}
-          >
-            <img className="btn-icon" src={deleteIcon} alt="" />
-          </button>
+          {!r.completion && (
+            <>
+              <button className="icon-btn" title="Edit run" onClick={() => setDialog({ type: 'edit-run', run: r })}>
+                <img className="btn-icon" src={editIcon} alt="" />
+              </button>
+              <button className="icon-btn danger" title="Delete run" onClick={() => onDeleteRun(r)}>
+                <img className="btn-icon" src={deleteIcon} alt="" />
+              </button>
+            </>
+          )}
         </span>
       </li>
     )
@@ -178,15 +204,7 @@ export function LevelPage({ id }: { id: string }) {
         </div>
         <div className="hero-bars">
           <RunBar calc={calc} />
-          <p className="hero-summary">
-            {calc.complete
-              ? calc.chain.length === 1
-                ? 'You have a full 0–100 run!'
-                : `You have it in ${calc.chain.length} runs: ${calc.chain.map((r) => runLabel(r.start, r.end)).join(' → ')}`
-              : runs.length
-                ? `Chained to ${pct(calc.reach)}. Missing ${range(calc.gap!.from, calc.gap!.to)}.`
-                : 'Log your first run below.'}
-          </p>
+          <p className="hero-summary">{heroSummary}</p>
           <RunLanes calc={calc} />
           <div className="best-zero">
             <span className="field-label">Best from 0</span>
@@ -220,19 +238,28 @@ export function LevelPage({ id }: { id: string }) {
                 {byNewest(groups.other).map(renderRun)}
               </RunGroup>
             )}
+            {legacy && legacy.chain.length > 0 && (
+              <FoldedRuns
+                title="Before you beat it"
+                hint={
+                  legacy.complete
+                    ? `The chain you had it in: ${legacy.chain.length} ${legacy.chain.length === 1 ? 'run' : 'runs'}.`
+                    : `The chain you had, reaching ${pct(legacy.reach)}.`
+                }
+                count={legacy.chain.length}
+              >
+                {legacy.chain.map(renderRun)}
+              </FoldedRuns>
+            )}
             {groups.obsolete.length > 0 && (
-              <section className="run-group">
-                <h3 className="run-group-title outlined">
-                  <button className="section-toggle" aria-expanded={showObsolete} onClick={() => setShowObsolete((v) => !v)}>
-                    <span className={`toggle-arrow ${showObsolete ? 'open' : ''}`} aria-hidden="true">
-                      ▶
-                    </span>
-                    Obsolete runs <span className="count">{groups.obsolete.length}</span>
-                  </button>
-                </h3>
-                <p className="muted run-group-hint">Covered by one of your connected runs, so they can't improve your chain.</p>
-                {showObsolete && <ul className="run-list obsolete">{byNewest(groups.obsolete).map(renderRun)}</ul>}
-              </section>
+              <FoldedRuns
+                title="Obsolete runs"
+                hint="Covered by one of your connected runs, so they can't improve your chain."
+                count={groups.obsolete.length}
+                dim
+              >
+                {byNewest(groups.obsolete).map(renderRun)}
+              </FoldedRuns>
             )}
           </>
         )}
@@ -368,6 +395,25 @@ function RunGroup({ title, hint, children }: { title: string; hint?: string; chi
       <h3 className="run-group-title outlined">{title}</h3>
       {hint && <p className="muted run-group-hint">{hint}</p>}
       <ul className="run-list">{children}</ul>
+    </section>
+  )
+}
+
+/** A run section that starts folded away. */
+function FoldedRuns({ title, hint, count, dim, children }: { title: string; hint: string; count: number; dim?: boolean; children: ReactNode }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <section className="run-group">
+      <h3 className="run-group-title outlined">
+        <button className="section-toggle" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+          <span className={`toggle-arrow ${open ? 'open' : ''}`} aria-hidden="true">
+            ▶
+          </span>
+          {title} <span className="count">{count}</span>
+        </button>
+      </h3>
+      <p className="muted run-group-hint">{hint}</p>
+      {open && <ul className={`run-list ${dim ? 'obsolete' : ''}`}>{children}</ul>}
     </section>
   )
 }

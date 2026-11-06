@@ -11,12 +11,14 @@ import { Modal } from './components/Modal'
 import { useSetting } from './lib/settings'
 import { useShortcut, SHORTCUTS } from './lib/shortcuts'
 import { DEFAULT_THEME, applyTheme } from './lib/theme'
+import { reconcileCompletionRuns } from './lib/completion'
 
 export default function App() {
   const route = useRoute()
   const [help, setHelp] = useState(false)
   useShortcut('?', () => setHelp(true))
   useLevelTheme(route)
+  useCompletionRuns()
 
   return (
     <>
@@ -60,4 +62,15 @@ function useLevelTheme(route: Route) {
   const levelTheme = useLiveQuery(async () => (levelId ? (await db.levels.get(levelId))?.theme : undefined), [levelId])
   const color = levelTheme ?? appTheme ?? DEFAULT_THEME
   useEffect(() => applyTheme(color), [color])
+}
+
+/** Gives beaten levels their automatic 100% run (and removes it when a level is unmarked), whenever levels change. */
+function useCompletionRuns() {
+  const state = useLiveQuery(async () => {
+    const levels = await db.levels.toArray()
+    return levels.map((l) => `${l.id}:${l.beaten ? (l.beatenDate ?? '1') : '0'}`).join('|')
+  })
+  useEffect(() => {
+    if (state !== undefined) reconcileCompletionRuns().catch(() => {})
+  }, [state])
 }

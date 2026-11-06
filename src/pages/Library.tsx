@@ -17,6 +17,7 @@ import { AddLevelModal } from '../components/AddLevelModal'
 import { href } from '../router'
 import logo from '../assets/logo.svg'
 import settingsIcon from '../assets/icons/settings.png'
+import starIcon from '../assets/icons/star.png'
 
 type Sort = 'recent' | 'runs' | 'difficulty' | 'list' | 'name'
 
@@ -296,7 +297,7 @@ function LevelCard({ entry }: { entry: Entry }) {
       <div className="level-card-stat">
         {level.beaten ? (
           <>
-            <span className="stat-big outlined gold">✔</span>
+            <img className="beaten-star" src={starIcon} alt="Beaten" />
             <span className="stat-label">{level.beatenDate ? formatDate(level.beatenDate) : 'Beaten'}</span>
           </>
         ) : runCount !== null ? (

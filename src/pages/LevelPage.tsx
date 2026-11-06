@@ -18,6 +18,7 @@ import { RunFormModal } from '../components/RunFormModal'
 import { DeathChart } from '../components/DeathChart'
 import editIcon from '../assets/icons/edit.png'
 import deleteIcon from '../assets/icons/delete.png'
+import starIcon from '../assets/icons/star.png'
 import { VideoButton } from '../components/VideoModal'
 import { BeatenModal, EditLevelModal } from '../components/LevelModals'
 
@@ -317,7 +318,7 @@ function QuickAdd({ levelId }: { levelId: string }) {
 function CompletionPanel({ level, onEdit }: { level: Level; onEdit: () => void }) {
   return (
     <section className="panel completion">
-      <span className="completion-star">★</span>
+      <img className="completion-star" src={starIcon} alt="" />
       <div>
         <h2 className="outlined gold">LEVEL COMPLETE!</h2>
         <p className="muted">{level.beatenDate ? `Beaten ${formatDate(level.beatenDate)}` : 'Beaten'}</p>

@@ -16,6 +16,7 @@ import { compareHardest, demonTier } from '../lib/demonTier'
 import { AddLevelModal } from '../components/AddLevelModal'
 import { href } from '../router'
 import logo from '../assets/logo.svg'
+import settingsIcon from '../assets/icons/settings.png'
 
 type Sort = 'recent' | 'runs' | 'difficulty' | 'list' | 'name'
 
@@ -83,8 +84,11 @@ export function Library() {
           <img src={logo} alt="Run Tracker" />
         </h1>
         <div className="top-actions">
+          <a className="gd-btn gray small" href={href.help}>
+            ? How to Use
+          </a>
           <a className="gd-btn gray small" href={href.settings}>
-            ⚙ Settings
+            <img className="btn-icon" src={settingsIcon} alt="" /> Settings
           </a>
           <button className="gd-btn green" onClick={() => setAdding(true)} title="Shortcut: A">
             + Add Level
@@ -251,7 +255,7 @@ function QueueSection({ entries, searching }: { entries: Entry[]; searching: boo
                   ▼
                 </button>
                 <button className="icon-btn danger" title="Remove from Next Up" onClick={() => removeFromQueue(e.level)}>
-                  ✕
+                  X
                 </button>
               </div>
             </li>

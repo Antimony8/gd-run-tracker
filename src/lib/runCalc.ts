@@ -55,3 +55,24 @@ export function calculateRuns<T extends Span>(runs: readonly T[]): RunCalcResult
 
   return { complete: gap === null, chain, reach, gap, bestFromZero }
 }
+
+export interface RunGroups<T extends Span> {
+  /** The chain's runs, in order. */
+  connected: T[]
+  /** Runs outside the chain that no connected run covers, so they could still matter. */
+  other: T[]
+  /** Runs a connected run fully covers (e.g. 50–100 when you have 40–100), so they can't improve the chain. */
+  obsolete: T[]
+}
+
+/** Sorts runs into connected, other and obsolete, relative to the chain from calculateRuns. */
+export function groupRuns<T extends Span>(runs: readonly T[], chain: readonly T[]): RunGroups<T> {
+  const inChain = new Set(chain)
+  const groups: RunGroups<T> = { connected: [...chain], other: [], obsolete: [] }
+  for (const r of runs) {
+    if (inChain.has(r)) continue
+    const covered = chain.some((c) => c.start <= r.start && c.end >= r.end)
+    ;(covered ? groups.obsolete : groups.other).push(r)
+  }
+  return groups
+}

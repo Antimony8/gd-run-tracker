@@ -21,6 +21,7 @@ Everything is stored in your browser. There are no accounts and no server.
 - **Videos**: upload a clip (stored in your browser) or paste a YouTube, X/Twitter or Medal link. YouTube and X videos play right in the app.
 - **Mark levels beaten** with a completion date and video.
 - **Undo** after deleting a run.
+- **How to Use page** (`#/help`) explaining every feature and how to set up each connection.
 - **Keyboard shortcuts**: `N` new run, `/` search, `A` add level, `?` for the list.
 - **Import a spreadsheet** (.xlsx or .csv) in Settings. It reads columns by their headers (Level, AREDL Rank, Status, Best from 0, Best Runs, Attempts, Notes…), understands section headings like "Next Up" or "Plan to Play", and shows a preview before saving. It can also look up level IDs and current ranks on the AREDL by name.
 - **Death Tracker import**: pick the [Death Tracker](https://github.com/abb2k/death-tracker) mod's `levels` folder (`%LOCALAPPDATA%\GeometryDash\geode\mods\elohmrow.death_tracker\levels`) in Settings to bring in attempts, playtime, your best from 0, recorded start-pos runs, and a "Where You Die" chart of deaths at each percent. Editor copies ("Bloodbath start pos", "bloodbath copy 2") are matched by name, and you choose which tracker level each mod level adds to, so a level and its copies combine. Re-import any time; nothing is duplicated.

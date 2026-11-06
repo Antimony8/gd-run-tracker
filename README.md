@@ -34,33 +34,6 @@ Everything is stored in your browser. There are no accounts and no server.
 
 A run connects to the previous one if it starts at or before the previous one ended. So `0–50` and `50–100` count as connected. You decide what's legit when you log a run; the app just does the math.
 
-## Setup
-
-You need [Node.js](https://nodejs.org) 20 or newer.
-
-```bash
-npm install
-npm run dev
-```
-
-Then open the address it prints (usually http://localhost:5173).
-
-### Other commands
-
-| Command           | What it does                         |
-| ----------------- | ------------------------------------ |
-| `npm test`        | Runs the tests                       |
-| `npm run build`   | Builds the site into `dist/`         |
-| `npm run preview` | Serves the built site locally        |
-
-## Deploying to GitHub Pages
-
-1. Push this project to a GitHub repository, on the `main` branch.
-2. In the repo, go to **Settings → Pages** and set **Source** to **GitHub Actions**.
-3. The included workflow (`.github/workflows/deploy.yml`) tests, builds and deploys on every push to `main`.
-4. Your site will be at `https://<your-username>.github.io/<repo-name>/`.
-
-The app uses hash URLs (`#/level/...`) and relative asset paths, so it works under any repo name with no extra config.
 
 ## Setting up sync
 

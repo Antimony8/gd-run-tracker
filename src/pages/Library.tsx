@@ -83,6 +83,9 @@ export function Library() {
           <img src={logo} alt="Run Tracker" />
         </h1>
         <div className="top-actions">
+          <a className="gd-btn gray small" href={href.help}>
+            ? How to Use
+          </a>
           <a className="gd-btn gray small" href={href.settings}>
             ⚙ Settings
           </a>

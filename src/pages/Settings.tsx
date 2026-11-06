@@ -166,6 +166,9 @@ export function Settings() {
         ‹ Levels
       </a>
       <h1 className="page-title outlined">Settings</h1>
+      <p>
+        New here, or setting up a mod connection? See <a className="text-link" href={href.help}>How to Use</a>.
+      </p>
 
       {message && <p className={`banner ${message.type}`}>{message.text}</p>}
       {busy && <p className="banner">{busy}</p>}
@@ -298,6 +301,9 @@ export function Settings() {
           />
           <span>📂 Choose the Death Tracker folder</span>
         </label>
+        <p className="hint">
+          Step-by-step guide: <a className="text-link" href={href.helpSection('death-tracker')}>How to Use → Death Tracker</a>.
+        </p>
       </section>
 
       <section className="panel settings-card">

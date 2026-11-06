@@ -1205,6 +1205,60 @@ textarea {
   background: #000;
 }
 
+/* ---------- How to Use ---------- */
+.help-toc ol {
+  margin: 0;
+  padding-left: 22px;
+  columns: 2;
+  column-gap: 24px;
+  font-weight: 700;
+  line-height: 1.9;
+}
+.help-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  line-height: 1.5;
+  scroll-margin-top: 16px;
+}
+.help-section h2 {
+  font-size: 26px;
+}
+.help-section ul,
+.help-section ol {
+  margin: 0;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.help-steps li::marker {
+  font-family: var(--font-display);
+  color: var(--gold);
+}
+.help-section code:not(.path) {
+  font-size: 0.92em;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.4);
+}
+.help-section code.path {
+  margin: 6px 0;
+}
+.help-section em {
+  font-style: normal;
+  font-weight: 800;
+  color: var(--gold);
+}
+.help-section .shortcut-list {
+  padding-left: 0;
+}
+@media (max-width: 480px) {
+  .help-toc ol {
+    columns: 1;
+  }
+}
+
 /* ---------- Settings ---------- */
 .page-title {
   font-size: 44px;

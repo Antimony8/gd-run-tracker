@@ -5,6 +5,7 @@ import { db } from './db'
 import { Library } from './pages/Library'
 import { LevelPage } from './pages/LevelPage'
 import { Settings } from './pages/Settings'
+import { HelpPage } from './pages/HelpPage'
 import { Toasts } from './components/Toasts'
 import { Modal } from './components/Modal'
 import { useSetting } from './lib/settings'
@@ -30,6 +31,8 @@ export default function App() {
         <LevelPage key={route.id} id={route.id} />
       ) : route.page === 'settings' ? (
         <Settings />
+      ) : route.page === 'help' ? (
+        <HelpPage key={route.section} section={route.section} />
       ) : (
         <Library />
       )}

@@ -354,12 +354,30 @@ p {
   width: 34px;
   height: 34px;
   border-radius: 9px;
+  /* Pusab, so letters like the close "X" look like the game's. */
+  font-family: var(--font-display);
   font-size: 15px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.15s var(--bounce), background 0.15s;
+}
+/* Image icons inside buttons (settings gear, edit pencil, trash can). */
+.btn-icon {
+  width: 1.35em;
+  height: 1.35em;
+  object-fit: contain;
+  vertical-align: middle;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+.gd-btn .btn-icon {
+  margin: -0.2em 0.1em -0.15em 0;
+}
+.icon-btn .btn-icon {
+  width: 20px;
+  height: 20px;
 }
 .icon-btn:hover {
   transform: scale(1.12);
@@ -1054,6 +1072,27 @@ textarea {
   text-align: right;
 }
 
+/* Runs list, split into connected / other / obsolete */
+.run-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.run-group + .run-group {
+  margin-top: 6px;
+}
+.run-group-title {
+  font-size: 20px;
+}
+.run-group-hint {
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: -4px;
+}
+.run-list.obsolete .run-row {
+  opacity: 0.7;
+}
+
 /* Runs list */
 .runs-panel {
   display: flex;
@@ -1182,6 +1221,60 @@ textarea {
   border: 0;
   border-radius: 12px;
   background: #000;
+}
+
+/* ---------- How to Use ---------- */
+.help-toc ol {
+  margin: 0;
+  padding-left: 22px;
+  columns: 2;
+  column-gap: 24px;
+  font-weight: 700;
+  line-height: 1.9;
+}
+.help-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  line-height: 1.5;
+  scroll-margin-top: 16px;
+}
+.help-section h2 {
+  font-size: 26px;
+}
+.help-section ul,
+.help-section ol {
+  margin: 0;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.help-steps li::marker {
+  font-family: var(--font-display);
+  color: var(--gold);
+}
+.help-section code:not(.path) {
+  font-size: 0.92em;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.4);
+}
+.help-section code.path {
+  margin: 6px 0;
+}
+.help-section em {
+  font-style: normal;
+  font-weight: 800;
+  color: var(--gold);
+}
+.help-section .shortcut-list {
+  padding-left: 0;
+}
+@media (max-width: 480px) {
+  .help-toc ol {
+    columns: 1;
+  }
 }
 
 /* ---------- Settings ---------- */

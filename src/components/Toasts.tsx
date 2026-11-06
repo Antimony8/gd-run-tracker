@@ -19,7 +19,7 @@ export function Toasts() {
             </button>
           )}
           <button className="icon-btn" aria-label="Dismiss" onClick={() => dismissToast(t.id)}>
-            ✕
+            X
           </button>
         </div>
       ))}

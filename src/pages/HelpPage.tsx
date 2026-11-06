@@ -72,8 +72,9 @@ export function HelpPage({ section }: { section?: string }) {
             under <em>Other runs</em>.
           </li>
           <li>
-            <strong>Beat it?</strong> Press <em>★ Mark Beaten</em> to add a completion date and video. Your hardest completion
-            gets a gold frame.
+            <strong>Beat it?</strong> Press <em>★ Mark Beaten</em> to add a completion date and video. The level gets a 100%
+            run, so it's beaten in 1 run, and the chain you had before is kept under <em>Before you beat it</em>. Your hardest
+            completion gets a gold frame.
           </li>
         </Steps>
         <p>

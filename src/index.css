@@ -1089,6 +1089,9 @@ textarea {
   font-weight: 700;
   margin-top: -4px;
 }
+.completion-chip {
+  color: var(--gold);
+}
 .run-list.obsolete .run-row {
   opacity: 0.7;
 }

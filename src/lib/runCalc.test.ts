@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calculateRuns } from './runCalc'
+import { calculateRuns, groupRuns } from './runCalc'
 
 const r = (start: number, end: number) => ({ start, end })
 const spans = (chain: { start: number; end: number }[]) => chain.map((c) => [c.start, c.end])
@@ -78,5 +78,27 @@ describe('calculateRuns', () => {
   it('finds the best run from 0', () => {
     const res = calculateRuns([r(0, 30), r(0, 72.5), r(10, 100)])
     expect(res.bestFromZero).toEqual(r(0, 72.5))
+  })
+})
+
+describe('groupRuns', () => {
+  it('splits runs into connected, other and obsolete', () => {
+    const runs = [r(0, 50), r(40, 100), r(50, 100), r(10, 30), r(45, 100), r(0, 50)]
+    const { chain } = calculateRuns(runs)
+    const g = groupRuns(runs, chain)
+    expect(spans(g.connected)).toEqual([[0, 50], [40, 100]])
+    // 50-100 and 45-100 sit inside 40-100, 10-30 inside 0-50, and the duplicate 0-50 is covered too.
+    expect(spans(g.obsolete)).toEqual([[50, 100], [10, 30], [45, 100], [0, 50]])
+    expect(g.other).toEqual([])
+  })
+
+  it('keeps runs past a gap as other', () => {
+    const runs = [r(0, 30), r(10, 20), r(60, 100), r(70, 90)]
+    const { chain } = calculateRuns(runs)
+    const g = groupRuns(runs, chain)
+    expect(spans(g.connected)).toEqual([[0, 30]])
+    expect(spans(g.obsolete)).toEqual([[10, 20]])
+    // Not covered by the chain, so they stay visible even though 70-90 sits inside 60-100.
+    expect(spans(g.other)).toEqual([[60, 100], [70, 90]])
   })
 })

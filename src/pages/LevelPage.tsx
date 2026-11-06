@@ -1,8 +1,8 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../db'
 import type { Level, Run } from '../types'
-import { calculateRuns } from '../lib/runCalc'
+import { calculateRuns, groupRuns } from '../lib/runCalc'
 import { formatDate, parseQuickRun, pct, range, runLabel, todayISO, uid, validateRun } from '../lib/format'
 import { addToQueue, deleteLevel, deleteRun, refreshListRanks, removeFromQueue, removeVideo, restoreRun } from '../lib/data'
 import { pointercrateSection } from '../lib/levelInfo'
@@ -29,6 +29,7 @@ export function LevelPage({ id }: { id: string }) {
   const level = useLiveQuery(async () => (await db.levels.get(id)) ?? null, [id])
   const runs = useLiveQuery(() => db.runs.where('levelId').equals(id).toArray(), [id])
   const [dialog, setDialog] = useState<Dialog>(null)
+  const [showObsolete, setShowObsolete] = useState(false)
 
   const calc = useMemo(() => calculateRuns(runs ?? []), [runs])
   const thumb = useThumbBackground(level ?? NO_LEVEL, 'medium')
@@ -50,7 +51,42 @@ export function LevelPage({ id }: { id: string }) {
 
   const tier = demonTier(level)
   const chainIndex = new Map(calc.chain.map((r, i) => [r.id, i]))
-  const history = [...runs].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt)
+  const groups = groupRuns(runs, calc.chain)
+  const renderRun = (r: Run) => {
+    const ci = chainIndex.get(r.id)
+    return (
+      <li key={r.id} className={`run-row ${ci !== undefined ? 'in-chain' : ''}`}>
+        <span className="run-range outlined" style={ci !== undefined ? { color: runColor(ci) } : undefined}>
+          {runLabel(r.start, r.end)}
+        </span>
+        <div className="run-mini">
+          <div
+            style={{
+              left: `${r.start}%`,
+              width: `${r.end - r.start}%`,
+              background: ci !== undefined ? runColor(ci) : undefined,
+            }}
+          />
+        </div>
+        <span className="run-date muted">{formatDate(r.date)}</span>
+        <span className="run-note">{r.note}</span>
+        <span className="run-actions">
+          {ci !== undefined && <span className="chip chain-chip">Run {ci + 1}</span>}
+          {r.video && <VideoButton video={r.video} title={`${level.name}: ${runLabel(r.start, r.end)}`} />}
+          <button className="icon-btn" title="Edit run" onClick={() => setDialog({ type: 'edit-run', run: r })}>
+            ✎
+          </button>
+          <button
+            className="icon-btn danger"
+            title="Delete run"
+            onClick={() => onDeleteRun(r)}
+          >
+            🗑
+          </button>
+        </span>
+      </li>
+    )
+  }
   const close = () => setDialog(null)
 
   const onDeleteLevel = async () => {
@@ -168,46 +204,35 @@ export function LevelPage({ id }: { id: string }) {
           </button>
         </div>
 
-        {history.length === 0 ? (
+        {runs.length === 0 ? (
           <p className="muted">No runs logged yet.</p>
         ) : (
-          <ul className="run-list">
-            {history.map((r) => {
-              const ci = chainIndex.get(r.id)
-              return (
-                <li key={r.id} className={`run-row ${ci !== undefined ? 'in-chain' : ''}`}>
-                  <span className="run-range outlined" style={ci !== undefined ? { color: runColor(ci) } : undefined}>
-                    {runLabel(r.start, r.end)}
-                  </span>
-                  <div className="run-mini">
-                    <div
-                      style={{
-                        left: `${r.start}%`,
-                        width: `${r.end - r.start}%`,
-                        background: ci !== undefined ? runColor(ci) : undefined,
-                      }}
-                    />
-                  </div>
-                  <span className="run-date muted">{formatDate(r.date)}</span>
-                  <span className="run-note">{r.note}</span>
-                  <span className="run-actions">
-                    {ci !== undefined && <span className="chip chain-chip">Run {ci + 1}</span>}
-                    {r.video && <VideoButton video={r.video} title={`${level.name}: ${runLabel(r.start, r.end)}`} />}
-                    <button className="icon-btn" title="Edit run" onClick={() => setDialog({ type: 'edit-run', run: r })}>
-                      ✎
-                    </button>
-                    <button
-                      className="icon-btn danger"
-                      title="Delete run"
-                      onClick={() => onDeleteRun(r)}
-                    >
-                      🗑
-                    </button>
-                  </span>
-                </li>
-              )
-            })}
-          </ul>
+          <>
+            {groups.connected.length > 0 && (
+              <RunGroup title="Connected runs" hint="Your chain, in order">
+                {groups.connected.map(renderRun)}
+              </RunGroup>
+            )}
+            {groups.other.length > 0 && (
+              <RunGroup title={groups.connected.length ? 'Other runs' : 'Runs'} hint={groups.connected.length ? 'Not covered by your chain' : undefined}>
+                {byNewest(groups.other).map(renderRun)}
+              </RunGroup>
+            )}
+            {groups.obsolete.length > 0 && (
+              <section className="run-group">
+                <h3 className="run-group-title outlined">
+                  <button className="section-toggle" aria-expanded={showObsolete} onClick={() => setShowObsolete((v) => !v)}>
+                    <span className={`toggle-arrow ${showObsolete ? 'open' : ''}`} aria-hidden="true">
+                      ▶
+                    </span>
+                    Obsolete runs <span className="count">{groups.obsolete.length}</span>
+                  </button>
+                </h3>
+                <p className="muted run-group-hint">Covered by one of your connected runs, so they can't improve your chain.</p>
+                {showObsolete && <ul className="run-list obsolete">{byNewest(groups.obsolete).map(renderRun)}</ul>}
+              </section>
+            )}
+          </>
         )}
       </section>
 
@@ -330,5 +355,17 @@ function ListRankChips({ level }: { level: Level }) {
         {checking ? 'Checking…' : level.listRanks ? '↻ List rank' : 'Check list rank'}
       </button>
     </>
+  )
+}
+
+const byNewest = (runs: Run[]) => [...runs].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt)
+
+function RunGroup({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
+  return (
+    <section className="run-group">
+      <h3 className="run-group-title outlined">{title}</h3>
+      {hint && <p className="muted run-group-hint">{hint}</p>}
+      <ul className="run-list">{children}</ul>
+    </section>
   )
 }

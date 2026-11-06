@@ -89,6 +89,8 @@ export interface Run {
   createdAt: number // ms timestamp, for stable ordering and future stats
   note?: string
   video?: VideoRef
+  /** The automatic 0–100 run a beaten level gets. */
+  completion?: boolean
 }
 
 export interface StoredVideo {

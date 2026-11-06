@@ -757,6 +757,13 @@ textarea {
   font-size: 36px;
   line-height: 1;
 }
+/* The game's star on beaten level cards. */
+.beaten-star {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 2px;
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.4));
+}
 .stat-label {
   font-size: 12px;
   font-weight: 800;
@@ -890,9 +897,9 @@ textarea {
   font-size: 30px;
 }
 .completion-star {
-  font-size: 46px;
-  color: var(--gold);
-  text-shadow: 0 0 18px rgba(255, 210, 63, 0.8), 0 3px 0 #000;
+  width: 56px;
+  height: 56px;
+  filter: drop-shadow(0 0 12px rgba(255, 210, 63, 0.7));
   animation: spin-pop 2.4s ease-in-out infinite;
 }
 .completion-actions {
@@ -1088,6 +1095,9 @@ textarea {
   font-size: 13px;
   font-weight: 700;
   margin-top: -4px;
+}
+.completion-chip {
+  color: var(--gold);
 }
 .run-list.obsolete .run-row {
   opacity: 0.7;

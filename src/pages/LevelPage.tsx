@@ -16,6 +16,8 @@ import { demonTier } from '../lib/demonTier'
 import { NormalBar, RunBar, RunLanes, runColor } from '../components/ProgressBar'
 import { RunFormModal } from '../components/RunFormModal'
 import { DeathChart } from '../components/DeathChart'
+import editIcon from '../assets/icons/edit.png'
+import deleteIcon from '../assets/icons/delete.png'
 import { VideoButton } from '../components/VideoModal'
 import { BeatenModal, EditLevelModal } from '../components/LevelModals'
 
@@ -74,14 +76,14 @@ export function LevelPage({ id }: { id: string }) {
           {ci !== undefined && <span className="chip chain-chip">Run {ci + 1}</span>}
           {r.video && <VideoButton video={r.video} title={`${level.name}: ${runLabel(r.start, r.end)}`} />}
           <button className="icon-btn" title="Edit run" onClick={() => setDialog({ type: 'edit-run', run: r })}>
-            ✎
+            <img className="btn-icon" src={editIcon} alt="" />
           </button>
           <button
             className="icon-btn danger"
             title="Delete run"
             onClick={() => onDeleteRun(r)}
           >
-            🗑
+            <img className="btn-icon" src={deleteIcon} alt="" />
           </button>
         </span>
       </li>

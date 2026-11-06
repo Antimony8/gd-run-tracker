@@ -354,12 +354,30 @@ p {
   width: 34px;
   height: 34px;
   border-radius: 9px;
+  /* Pusab, so letters like the close "X" look like the game's. */
+  font-family: var(--font-display);
   font-size: 15px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.15s var(--bounce), background 0.15s;
+}
+/* Image icons inside buttons (settings gear, edit pencil, trash can). */
+.btn-icon {
+  width: 1.35em;
+  height: 1.35em;
+  object-fit: contain;
+  vertical-align: middle;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+.gd-btn .btn-icon {
+  margin: -0.2em 0.1em -0.15em 0;
+}
+.icon-btn .btn-icon {
+  width: 20px;
+  height: 20px;
 }
 .icon-btn:hover {
   transform: scale(1.12);
